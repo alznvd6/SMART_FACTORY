@@ -1,0 +1,30 @@
+23:08:40 **** Incremental Build of configuration Debug for project defect_sys ****
+make -j16 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m3 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F103xB -c -I../Core/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'Update_LCD_Display':
+../Core/Src/main.c:285:31: warning: 'sprintf' writing a terminating nul past the end of the destination [-Wformat-overflow=]
+  285 |   sprintf(line1, "Total: %-10d", total);
+      |                               ^
+../Core/Src/main.c:285:3: note: 'sprintf' output between 18 and 19 bytes into a destination of size 17
+  285 |   sprintf(line1, "Total: %-10d", total);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+arm-none-eabi-gcc -o "defect_sys.elf" @"objects.list"   -mcpu=cortex-m3 -T"F:\SMART_FACTORY\subsystems\quality-control\firmware\defect_sys\STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="defect_sys.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: defect_sys.elf
+ 
+arm-none-eabi-size  defect_sys.elf 
+arm-none-eabi-objdump -h -S defect_sys.elf  > "defect_sys.list"
+arm-none-eabi-objcopy  -O ihex defect_sys.elf  "defect_sys.hex"
+   text	   data	    bss	    dec	    hex	filename
+   9692	     92	   1988	  11772	   2dfc	defect_sys.elf
+arm-none-eabi-objcopy  -O binary defect_sys.elf  "defect_sys.bin"
+Finished building: default.size.stdout
+ 
+Finished building: defect_sys.hex
+Finished building: defect_sys.bin
+ 
+Finished building: defect_sys.list
+ 
+ 
+
+23:08:42 Build Finished. 0 errors, 1 warnings. (took 1s.272ms)
+
