@@ -1,0 +1,33 @@
+This project is a quality control checkpoint designed for a factory CNC production line. It uses an STM32F103C8T6 (Blue Pill) microcontroller to automatically track production volume, spot defective items using sensors, update a local LCD display, trip visual LED alerts, and send real-time logs over a serial terminal.
+2. System Timing and Rules
+The factory line moves at a steady pace where a new product enters the inspection zone every 2 seconds. The moment a product is detected, the system locks out any new sensor inputs for exactly 2 seconds. This gives the code enough time to run the calculations, refresh the screen, transmit data, and let the current product completely clear the area before the next one arrives.
+3. Hardware Connections
+Because we need serial communication, the LCD data pins are split across different ports so they don't block the hardware serial pins.
+
+Sensors (Inputs):
+
+* PA0 connects to the IR Sensor (goes high when a product enters).
+* PA1 connects to the Defect Sensor (reads high if the product has a flaw, low if it is perfect).
+
+Indicators & Comms (Outputs):
+
+* PB0 connects to a Green LED (Pass).
+* PB1 connects to a Red LED (Fail).
+* PB6 is the USART1 Transmit (TX) line. It connects straight to the Proteus Virtual Terminal to send text logs at a 9600 baud rate.
+
+LCD Screen (4-Bit Parallel Mode):
+
+* PC13 connects to Register Select (RS).
+* PC14 connects to Enable (EN).
+* PC15 connects to Data Line 4 (D4).
+* PA8 connects to Data Line 5 (D5).
+* PA9 connects to Data Line 6 (D6).
+* PA10 connects to Data Line 7 (D7).
+* The Read/Write (RW) pin on the LCD is tied straight to Ground (G) since we only write to it.
+
+4. How the Code Works 
+* Startup: The microcontroller boots up, sets up the GPIO ports, opens the USART1 serial connection at 9600 baud, and initializes the LCD into 4-bit mode. It then draws a starting layout on the screen showing zeros for all counters.
+* Detection: The main loop constantly scans pin PA0. The exact moment the IR sensor goes high, the code adds 1 to the total product counter and immediately freezes to evaluate the item.
+* Evaluation: The code looks at pin PA1. If PA1 is high, it ticks up the defect counter, turns on the Red LED, and sends the string "problem\r\n" out through the serial port. If PA1 is low, it ticks up the healthy counter, turns on the Green LED, and sends "healthy\r\n" instead.
+* Display Refresh: The system overwrites the LCD with the fresh numbers. Line 1 shows the total items processed, and Line 2 shows the healthy and defective counts side-by-side.
+* The 2-Second Reset: The system triggers a 2-second delay window. Once those 2 seconds are up, it turns off both LEDs to reset the station indicators and goes right back to waiting for the next product on the IR sensor.
