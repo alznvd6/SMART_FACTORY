@@ -117,6 +117,7 @@ int main(void)
   HAL_Delay(1000);
   LCD_Command(0x01); // Flush and Clear LCD
 
+    // Print initial dashboard zeros
   Update_LCD_Display(total_products, healthy_products, defect_products);
   /* USER CODE END 2 */
 
@@ -124,35 +125,46 @@ int main(void)
   /* USER CODE BEGIN WHILE */
     while (1)
     {
+      // Check if the primary detection IR beam goes Active High (Product Enters)
       if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET)
       {
         total_products++;
 
+        // Instantly poll the validation sensor state
         if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1) == GPIO_PIN_SET)
         {
+          // Defect identified
           defect_products++;
 
+          // Assert Red Status LED
           HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
           HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
 
+          // Transmit serial log (Sent via remapped PB6 TX pin)
           char *msg = "problem\r\n";
           HAL_UART_Transmit(&huart1, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
         }
         else
         {
+          // Healthy unit confirmed
           healthy_products++;
 
+          // Assert Green Status LED
           HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
           HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
 
+          // Transmit serial log
           char *msg = "healthy\r\n";
           HAL_UART_Transmit(&huart1, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
         }
 
+        // Redraw updating data telemetry directly on the display
         Update_LCD_Display(total_products, healthy_products, defect_products);
 
-        HAL_Delay(1000);
+        // Hold state for the exact 2-second processing pipeline window
+        HAL_Delay(2000);
 
+        // Clear indicator LEDs to clear the runway for the next physical unit
         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
       }
@@ -212,6 +224,7 @@ void LCD_EnablePulse(void)
 
 void LCD_Send4Bit(uint8_t val)
 {
+  // Separately paths each out to their explicit pin configurations
   HAL_GPIO_WritePin(LCD_D4_GPIO_Port, LCD_D4_Pin, (val >> 0) & 0x01);
   HAL_GPIO_WritePin(LCD_D5_GPIO_Port, LCD_D5_Pin, (val >> 1) & 0x01);
   HAL_GPIO_WritePin(LCD_D6_GPIO_Port, LCD_D6_Pin, (val >> 2) & 0x01);
@@ -222,8 +235,8 @@ void LCD_Send4Bit(uint8_t val)
 void LCD_Command(uint8_t cmd)
 {
   HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_RESET);
-  LCD_Send4Bit(cmd >> 4);
-  LCD_Send4Bit(cmd & 0x0F);
+  LCD_Send4Bit(cmd >> 4);   // Transmission Phase 1: High Nibble
+  LCD_Send4Bit(cmd & 0x0F);  // Transmission Phase 2: Low Nibble
 }
 
 void LCD_Data(uint8_t data)
@@ -241,12 +254,12 @@ void LCD_Init(void)
   LCD_Send4Bit(0x03);
   HAL_Delay(1);
   LCD_Send4Bit(0x03);
-  LCD_Send4Bit(0x02);
+  LCD_Send4Bit(0x02); // Enforce 4-Bit Operating Topology
 
-  LCD_Command(0x28);
-  LCD_Command(0x0C);
-  LCD_Command(0x06);
-  LCD_Command(0x01);
+  LCD_Command(0x28); // 2 Display Rows, standard 5x7 Dot matrix character array
+  LCD_Command(0x0C); // Display Activated, Blinking tracking cursor suppressed
+  LCD_Command(0x06); // Set text direction to automatically increment right
+  LCD_Command(0x01); // Flush/Wipe memory clean
   HAL_Delay(2);
 }
 
@@ -268,6 +281,7 @@ void Update_LCD_Display(int total, int healthy, int defect)
   char line1[17];
   char line2[17];
 
+  // Dynamically pack integer counters inside custom 16-character array lines
   sprintf(line1, "Total: %-10d", total);
   sprintf(line2, "H:%-4d | D:%-4d", healthy, defect);
 

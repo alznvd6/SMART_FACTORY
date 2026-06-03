@@ -1,4 +1,4 @@
-This project is a quality control checkpoint designed for a factory CNC production line. It uses an STM32F103C8T6 (Blue Pill) microcontroller to automatically track production volume, spot defective items using sensors, update a local LCD display, trip visual LED alerts, and send real-time logs over a serial terminal.
+1. This project is a quality control checkpoint designed for a factory CNC production line. It uses an STM32F103C8T6 (Blue Pill) microcontroller to automatically track production volume, spot defective items using sensors, update a local LCD display, trip visual LED alerts, and send real-time logs over a serial terminal.
 2. System Timing and Rules
 The factory line moves at a steady pace where a new product enters the inspection zone every 2 seconds. The moment a product is detected, the system locks out any new sensor inputs for exactly 2 seconds. This gives the code enough time to run the calculations, refresh the screen, transmit data, and let the current product completely clear the area before the next one arrives.
 3. Hardware Connections
