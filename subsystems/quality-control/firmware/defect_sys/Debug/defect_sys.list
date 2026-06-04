@@ -27,9 +27,9 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   ALLOC
  11 .ARM.attributes 00000029  00000000  00000000  0000405c  2**0
                   CONTENTS, READONLY
- 12 .debug_info   00006a0f  00000000  00000000  00004085  2**0
+ 12 .debug_info   00006a09  00000000  00000000  00004085  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 13 .debug_abbrev 0000162a  00000000  00000000  0000aa94  2**0
+ 13 .debug_abbrev 0000162c  00000000  00000000  0000aa8e  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  14 .debug_aranges 00000680  00000000  00000000  0000c0c0  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
@@ -309,7 +309,6 @@ int main(void)
  80002ac:	2001      	movs	r0, #1
  80002ae:	f000 f91f 	bl	80004f0 <LCD_Command>
 
-    // Print initial dashboard zeros
   Update_LCD_Display(total_products, healthy_products, defect_products);
  80002b2:	4b39      	ldr	r3, [pc, #228]	@ (8000398 <main+0x11c>)
  80002b4:	681b      	ldr	r3, [r3, #0]
@@ -319,11 +318,11 @@ int main(void)
  80002bc:	6812      	ldr	r2, [r2, #0]
  80002be:	4618      	mov	r0, r3
  80002c0:	f000 f9aa 	bl	8000618 <Update_LCD_Display>
+
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
     while (1)
     {
-      // Check if the primary detection IR beam goes Active High (Product Enters)
       if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET)
  80002c4:	2101      	movs	r1, #1
  80002c6:	4837      	ldr	r0, [pc, #220]	@ (80003a4 <main+0x128>)
@@ -339,7 +338,6 @@ int main(void)
  80002d8:	4a2f      	ldr	r2, [pc, #188]	@ (8000398 <main+0x11c>)
  80002da:	6013      	str	r3, [r2, #0]
 
-        // Instantly poll the validation sensor state
         if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1) == GPIO_PIN_SET)
  80002dc:	2102      	movs	r1, #2
  80002de:	4831      	ldr	r0, [pc, #196]	@ (80003a4 <main+0x128>)
@@ -348,7 +346,6 @@ int main(void)
  80002e6:	2b01      	cmp	r3, #1
  80002e8:	d11c      	bne.n	8000324 <main+0xa8>
         {
-          // Defect identified
           defect_products++;
  80002ea:	4b2d      	ldr	r3, [pc, #180]	@ (80003a0 <main+0x124>)
  80002ec:	681b      	ldr	r3, [r3, #0]
@@ -356,7 +353,6 @@ int main(void)
  80002f0:	4a2b      	ldr	r2, [pc, #172]	@ (80003a0 <main+0x124>)
  80002f2:	6013      	str	r3, [r2, #0]
 
-          // Assert Red Status LED
           HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
  80002f4:	2201      	movs	r2, #1
  80002f6:	2102      	movs	r1, #2
@@ -368,7 +364,6 @@ int main(void)
  8000302:	4829      	ldr	r0, [pc, #164]	@ (80003a8 <main+0x12c>)
  8000304:	f000 fe05 	bl	8000f12 <HAL_GPIO_WritePin>
 
-          // Transmit serial log (Sent via remapped PB6 TX pin)
           char *msg = "problem\r\n";
  8000308:	4b28      	ldr	r3, [pc, #160]	@ (80003ac <main+0x130>)
  800030a:	603b      	str	r3, [r7, #0]
@@ -385,7 +380,6 @@ int main(void)
         }
         else
         {
-          // Healthy unit confirmed
           healthy_products++;
  8000324:	4b1d      	ldr	r3, [pc, #116]	@ (800039c <main+0x120>)
  8000326:	681b      	ldr	r3, [r3, #0]
@@ -393,7 +387,6 @@ int main(void)
  800032a:	4a1c      	ldr	r2, [pc, #112]	@ (800039c <main+0x120>)
  800032c:	6013      	str	r3, [r2, #0]
 
-          // Assert Green Status LED
           HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
  800032e:	2201      	movs	r2, #1
  8000330:	2101      	movs	r1, #1
@@ -405,7 +398,6 @@ int main(void)
  800033c:	481a      	ldr	r0, [pc, #104]	@ (80003a8 <main+0x12c>)
  800033e:	f000 fde8 	bl	8000f12 <HAL_GPIO_WritePin>
 
-          // Transmit serial log
           char *msg = "healthy\r\n";
  8000342:	4b1c      	ldr	r3, [pc, #112]	@ (80003b4 <main+0x138>)
  8000344:	607b      	str	r3, [r7, #4]
@@ -420,7 +412,6 @@ int main(void)
  8000358:	f001 fa54 	bl	8001804 <HAL_UART_Transmit>
         }
 
-        // Redraw updating data telemetry directly on the display
         Update_LCD_Display(total_products, healthy_products, defect_products);
  800035c:	4b0e      	ldr	r3, [pc, #56]	@ (8000398 <main+0x11c>)
  800035e:	681b      	ldr	r3, [r3, #0]
@@ -431,12 +422,10 @@ int main(void)
  8000368:	4618      	mov	r0, r3
  800036a:	f000 f955 	bl	8000618 <Update_LCD_Display>
 
-        // Hold state for the exact 2-second processing pipeline window
-        HAL_Delay(2000);
- 800036e:	f44f 60fa 	mov.w	r0, #2000	@ 0x7d0
+        HAL_Delay(1000);
+ 800036e:	f44f 707a 	mov.w	r0, #1000	@ 0x3e8
  8000372:	f000 fb2b 	bl	80009cc <HAL_Delay>
 
-        // Clear indicator LEDs to clear the runway for the next physical unit
         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
  8000376:	2200      	movs	r2, #0
  8000378:	2101      	movs	r1, #1
@@ -600,7 +589,6 @@ void LCD_Send4Bit(uint8_t val)
  8000478:	af00      	add	r7, sp, #0
  800047a:	4603      	mov	r3, r0
  800047c:	71fb      	strb	r3, [r7, #7]
-  // Separately paths each out to their explicit pin configurations
   HAL_GPIO_WritePin(LCD_D4_GPIO_Port, LCD_D4_Pin, (val >> 0) & 0x01);
  800047e:	79fb      	ldrb	r3, [r7, #7]
  8000480:	f003 0301 	and.w	r3, r3, #1
@@ -664,13 +652,13 @@ void LCD_Command(uint8_t cmd)
  80004fc:	f44f 5100 	mov.w	r1, #8192	@ 0x2000
  8000500:	4809      	ldr	r0, [pc, #36]	@ (8000528 <LCD_Command+0x38>)
  8000502:	f000 fd06 	bl	8000f12 <HAL_GPIO_WritePin>
-  LCD_Send4Bit(cmd >> 4);   // Transmission Phase 1: High Nibble
+  LCD_Send4Bit(cmd >> 4);
  8000506:	79fb      	ldrb	r3, [r7, #7]
  8000508:	091b      	lsrs	r3, r3, #4
  800050a:	b2db      	uxtb	r3, r3
  800050c:	4618      	mov	r0, r3
  800050e:	f7ff ffb1 	bl	8000474 <LCD_Send4Bit>
-  LCD_Send4Bit(cmd & 0x0F);  // Transmission Phase 2: Low Nibble
+  LCD_Send4Bit(cmd & 0x0F);
  8000512:	79fb      	ldrb	r3, [r7, #7]
  8000514:	f003 030f 	and.w	r3, r3, #15
  8000518:	b2db      	uxtb	r3, r3
@@ -740,20 +728,20 @@ void LCD_Init(void)
   LCD_Send4Bit(0x03);
  800058a:	2003      	movs	r0, #3
  800058c:	f7ff ff72 	bl	8000474 <LCD_Send4Bit>
-  LCD_Send4Bit(0x02); // Enforce 4-Bit Operating Topology
+  LCD_Send4Bit(0x02);
  8000590:	2002      	movs	r0, #2
  8000592:	f7ff ff6f 	bl	8000474 <LCD_Send4Bit>
 
-  LCD_Command(0x28); // 2 Display Rows, standard 5x7 Dot matrix character array
+  LCD_Command(0x28);
  8000596:	2028      	movs	r0, #40	@ 0x28
  8000598:	f7ff ffaa 	bl	80004f0 <LCD_Command>
-  LCD_Command(0x0C); // Display Activated, Blinking tracking cursor suppressed
+  LCD_Command(0x0C);
  800059c:	200c      	movs	r0, #12
  800059e:	f7ff ffa7 	bl	80004f0 <LCD_Command>
-  LCD_Command(0x06); // Set text direction to automatically increment right
+  LCD_Command(0x06);
  80005a2:	2006      	movs	r0, #6
  80005a4:	f7ff ffa4 	bl	80004f0 <LCD_Command>
-  LCD_Command(0x01); // Flush/Wipe memory clean
+  LCD_Command(0x01);
  80005a8:	2001      	movs	r0, #1
  80005aa:	f7ff ffa1 	bl	80004f0 <LCD_Command>
   HAL_Delay(2);
@@ -840,7 +828,6 @@ void Update_LCD_Display(int total, int healthy, int defect)
   char line1[17];
   char line2[17];
 
-  // Dynamically pack integer counters inside custom 16-character array lines
   sprintf(line1, "Total: %-10d", total);
  8000624:	f107 0324 	add.w	r3, r7, #36	@ 0x24
  8000628:	68fa      	ldr	r2, [r7, #12]

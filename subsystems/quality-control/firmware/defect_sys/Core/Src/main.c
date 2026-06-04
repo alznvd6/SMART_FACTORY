@@ -158,8 +158,10 @@ int main(void)
       }
 
       HAL_Delay(50); // Small cycle delay to prevent simulation processing locking
-      /* USER CODE END WHILE */
-    }
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
+  }
   /* USER CODE END 3 */
 }
 
@@ -201,6 +203,7 @@ void SystemClock_Config(void)
     Error_Handler();
   }
 }
+
 /* USER CODE BEGIN 4 */
 void LCD_EnablePulse(void)
 {
