@@ -22,7 +22,7 @@
   </DaveTm>
 
   <Target>
-    <TargetName>Security</TargetName>
+    <TargetName>Safety</TargetName>
     <ToolsetNumber>0x4</ToolsetNumber>
     <ToolsetName>ARM-ADS</ToolsetName>
     <TargetOption>
