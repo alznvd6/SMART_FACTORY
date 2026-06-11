@@ -1,0 +1,22 @@
+--cpu Cortex-M3
+"safety\startup_stm32f103xb.o"
+"safety\main.o"
+"safety\stm32f1xx_it.o"
+"safety\stm32f1xx_hal_msp.o"
+"safety\stm32f1xx_hal_gpio_ex.o"
+"safety\stm32f1xx_hal_uart.o"
+"safety\stm32f1xx_hal.o"
+"safety\stm32f1xx_hal_rcc.o"
+"safety\stm32f1xx_hal_rcc_ex.o"
+"safety\stm32f1xx_hal_gpio.o"
+"safety\stm32f1xx_hal_dma.o"
+"safety\stm32f1xx_hal_cortex.o"
+"safety\stm32f1xx_hal_pwr.o"
+"safety\stm32f1xx_hal_flash.o"
+"safety\stm32f1xx_hal_flash_ex.o"
+"safety\stm32f1xx_hal_exti.o"
+"safety\system_stm32f1xx.o"
+--strict --scatter "Safety\Safety.sct"
+--summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "Safety.map" -o Safety\Safety.axf
