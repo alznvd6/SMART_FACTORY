@@ -1,0 +1,22 @@
+--cpu Cortex-M3
+"fingerprint\startup_stm32f103xb.o"
+"fingerprint\main.o"
+"fingerprint\stm32f1xx_it.o"
+"fingerprint\stm32f1xx_hal_msp.o"
+"fingerprint\stm32f1xx_hal_gpio_ex.o"
+"fingerprint\stm32f1xx_hal_uart.o"
+"fingerprint\stm32f1xx_hal.o"
+"fingerprint\stm32f1xx_hal_rcc.o"
+"fingerprint\stm32f1xx_hal_rcc_ex.o"
+"fingerprint\stm32f1xx_hal_gpio.o"
+"fingerprint\stm32f1xx_hal_dma.o"
+"fingerprint\stm32f1xx_hal_cortex.o"
+"fingerprint\stm32f1xx_hal_pwr.o"
+"fingerprint\stm32f1xx_hal_flash.o"
+"fingerprint\stm32f1xx_hal_flash_ex.o"
+"fingerprint\stm32f1xx_hal_exti.o"
+"fingerprint\system_stm32f1xx.o"
+--library_type=microlib --strict --scatter "Fingerprint\Fingerprint.sct"
+--summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "Fingerprint.map" -o Fingerprint\Fingerprint.axf
