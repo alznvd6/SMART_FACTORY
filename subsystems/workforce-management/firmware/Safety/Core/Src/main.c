@@ -21,7 +21,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -51,13 +53,14 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
-void Alarm( char buff[10] );
+bool Warning( char buff[30] );
+void Transfer( char buff[30] );
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 uint8_t data;
-char BUFF[10];
+char BUFF[30];
 uint8_t index = 0;
 /* USER CODE END 0 */
 
@@ -203,13 +206,15 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 		if( data == '\r' || data == '\n' ){
 			BUFF[index] = '\0';
 			index = 0;
-			Alarm(BUFF);
+			if( Warning(BUFF) ){
+				Transfer(BUFF);
+			}
 		}else{
 		
 			BUFF[index] = data;
 			index++;
 		
-			if(index >= 14){
+			if(index >= 34){
 				index = 0;
 			}
 		}
@@ -218,15 +223,29 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	
 }
 
-void Alarm( char buff[10] ){
+bool Warning( char buff[30] ){
+	
 	if( strcmp(buff,"CLOTH")== 0){
 		HAL_UART_Transmit(&huart2,(uint8_t*)"[WARNING] Worker isn't wearing safety clothing\r\n",strlen("[WARNING] Worker isn't wearing safety clothing\r\n"),100);
+		return false;
 	}
 			
 	if( strcmp(buff,"DISTANCE")== 0){
 		HAL_UART_Transmit(&huart2,(uint8_t*)"[WARNING] Worker entered hazardous area\r\n",strlen("[WARNING] Worker entered hazardous area\r\n"),100);
+		return false;
 	}
-			
+	return true;	
+}
+void Transfer( char buff[30] ){
+	int check = 0;
+	sscanf(buff, "%*s %*[^:] : %*s%n", &check);
+	
+	if( check > 0 && buff[check] == '\0' ){
+		HAL_UART_Transmit(&huart2,(uint8_t*)buff,strlen(buff),100);
+		HAL_UART_Transmit(&huart2,(uint8_t*)"\r\n",2,100);
+	}
+	
+	
 }
 /* USER CODE END 4 */
 
