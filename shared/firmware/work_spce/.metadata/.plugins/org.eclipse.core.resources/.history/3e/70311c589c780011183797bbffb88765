@@ -1,0 +1,52 @@
+/*
+ * environment.c
+ *
+ *  Created on: Jul 5, 2026
+ *      Author: Navid
+ */
+
+#include "environment.h"
+#include <stdio.h>
+#include <string.h>
+
+// Private pointers to peripherals
+static ADC_HandleTypeDef *env_hadc;
+static UART_HandleTypeDef *env_huart;
+
+// Private variable to store current temperature
+static float current_temperature = 0.0f;
+
+void ENV_Init(ADC_HandleTypeDef *hadc_ptr, UART_HandleTypeDef *huart_ptr) {
+    env_hadc = hadc_ptr;
+    env_huart = huart_ptr;
+}
+
+void ENV_Task(void) {
+    uint32_t adc_value = 0;
+    char uart_buffer[60];
+
+    // 1. Start ADC
+    HAL_ADC_Start(env_hadc);
+
+    // 2. Poll for conversion
+    if (HAL_ADC_PollForConversion(env_hadc, 10) == HAL_OK) {
+        adc_value = HAL_ADC_GetValue(env_hadc);
+
+        // 3. Convert raw ADC to Temperature (LM35 formula)
+        // 3300mV reference / 4095 steps / 10mV per degree
+        current_temperature = ((float)adc_value * 330.0f) / 4095.0f;
+    }
+
+    // 4. Stop ADC
+    HAL_ADC_Stop(env_hadc);
+
+    // 5. Format and Transmit data to Proteus Virtual Terminal
+    // Note: If %f doesn't print, ensure "runtime library options -> float with printf" is enabled in CubeIDE
+    snprintf(uart_buffer, sizeof(uart_buffer), "Raw ADC: %lu | Temp: %.2f C\r\n", adc_value, current_temperature);
+    HAL_UART_Transmit(env_huart, (uint8_t*)uart_buffer, strlen(uart_buffer), 100);
+}
+
+// Public getter function for future logic (like fans/heaters)
+float ENV_GetTemperature(void) {
+    return current_temperature;
+}

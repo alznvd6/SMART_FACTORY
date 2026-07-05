@@ -1,0 +1,17 @@
+/*
+ * environment.h
+ *
+ *  Created on: Jul 5, 2026
+ *      Author: Navid
+ */
+
+#ifndef INC_ENVIRONMENT_H_
+#define INC_ENVIRONMENT_H_
+
+#include "stm32f1xx_hal.h" // Change to your specific MCU series (e.g., f1xx, f4xx)
+
+// Public Functions
+void ENV_Init(ADC_HandleTypeDef *hadc_ptr, UART_HandleTypeDef *huart_ptr);
+void ENV_Task(void);
+
+#endif /* INC_ENVIRONMENT_H_ */

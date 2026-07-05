@@ -1,0 +1,6 @@
+../Core/Src/environment.c:38:6:ENV_Init	16	static
+../Core/Src/environment.c:44:6:ENV_Task	256	static
+../Core/Src/environment.c:76:13:Add_Temperature_To_History	16	static
+../Core/Src/environment.c:86:14:Get_Average_Temperature	16	static
+../Core/Src/environment.c:95:13:Control_Temperature_Actuators	16	static
+../Core/Src/environment.c:110:13:Control_Fire_Safety	24	static

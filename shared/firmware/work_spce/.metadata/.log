@@ -1,0 +1,328 @@
+!SESSION 2026-07-05 21:16:41.606 -----------------------------------------------
+eclipse.buildId=Version 1.19.0
+java.version=21.0.3
+java.vendor=Eclipse Adoptium
+BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=en_US
+Framework arguments:  E:\SMART_FACTORY\subsystems\fire-system\firmware\Env_Monitor\.project
+Command-line arguments:  -os win32 -ws win32 -arch x86_64 E:\SMART_FACTORY\subsystems\fire-system\firmware\Env_Monitor\.project
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 4 4 2026-07-05 21:17:17.877
+!MESSAGE CubeMX plugin appears to be active, Log4j initialization might be too late.
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2026-07-05 21:17:17.878
+!MESSAGE Log4j2 initialized with config file E:\SMART_FACTORY\shared\firmware\work_spce\.metadata\.log4j2.xml
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:19.070
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:19.071
+!MESSAGE System property http.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:19.071
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:19.072
+!MESSAGE System property https.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:19.072
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:19.072
+!MESSAGE System property socksProxyPort is set to 58053 but should not be set.
+
+!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2026-07-05 21:17:21.414
+!MESSAGE Started RMI Server, listening on port 41337
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-07-05 21:17:24.797
+!MESSAGE Indexed 'Env_Monitor' (23 sources, 112 headers) in 2.23 sec: 8,302 declarations; 35,516 references; 6 unresolved inclusions; 826 syntax errors; 976 unresolved names (2.2%)
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.355
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.355
+!MESSAGE System property http.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.356
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.356
+!MESSAGE System property https.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.356
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.356
+!MESSAGE System property socksProxyPort is set to 58053 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.370
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.371
+!MESSAGE System property http.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.371
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.371
+!MESSAGE System property https.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.371
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.371
+!MESSAGE System property socksProxyPort is set to 58053 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.372
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.372
+!MESSAGE System property http.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.372
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.372
+!MESSAGE System property https.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.372
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.372
+!MESSAGE System property socksProxyPort is set to 58053 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.373
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.373
+!MESSAGE System property http.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.373
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.373
+!MESSAGE System property https.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.373
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.373
+!MESSAGE System property socksProxyPort is set to 58053 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.373
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.374
+!MESSAGE System property http.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.374
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.374
+!MESSAGE System property https.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.374
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.374
+!MESSAGE System property socksProxyPort is set to 58053 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.374
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.375
+!MESSAGE System property http.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.375
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.375
+!MESSAGE System property https.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.375
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.375
+!MESSAGE System property socksProxyPort is set to 58053 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.375
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.375
+!MESSAGE System property http.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.376
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.376
+!MESSAGE System property https.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.376
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.376
+!MESSAGE System property socksProxyPort is set to 58053 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.378
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.378
+!MESSAGE System property http.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.378
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.379
+!MESSAGE System property https.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.379
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:27.379
+!MESSAGE System property socksProxyPort is set to 58053 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.025
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.026
+!MESSAGE System property http.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.026
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.027
+!MESSAGE System property https.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.027
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.027
+!MESSAGE System property socksProxyPort is set to 58053 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.028
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.028
+!MESSAGE System property http.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.029
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.029
+!MESSAGE System property https.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.029
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.029
+!MESSAGE System property socksProxyPort is set to 58053 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.030
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.030
+!MESSAGE System property http.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.031
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.031
+!MESSAGE System property https.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.031
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.031
+!MESSAGE System property socksProxyPort is set to 58053 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.032
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.032
+!MESSAGE System property http.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.033
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.033
+!MESSAGE System property https.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.033
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.034
+!MESSAGE System property socksProxyPort is set to 58053 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.034
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.034
+!MESSAGE System property http.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.035
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.035
+!MESSAGE System property https.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.035
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.035
+!MESSAGE System property socksProxyPort is set to 58053 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.036
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.036
+!MESSAGE System property http.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.037
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.037
+!MESSAGE System property https.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.037
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.037
+!MESSAGE System property socksProxyPort is set to 58053 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.038
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.038
+!MESSAGE System property http.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.038
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.039
+!MESSAGE System property https.proxyPort is set to 58054 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.039
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-05 21:17:29.040
+!MESSAGE System property socksProxyPort is set to 58053 but should not be set.
+
+!ENTRY org.eclipse.equinox.p2.metadata.repository 4 1000 2026-07-05 21:17:53.375
+!MESSAGE No repository found at https://sw-center.st.com/stm32cubeide/openstlinux/updatesite1.
+
+!ENTRY org.eclipse.equinox.p2.metadata.repository 4 1000 2026-07-05 21:17:54.521
+!MESSAGE No repository found at https://sw-center.st.com/stm32cubeide/updatesite1.
+
+!ENTRY org.eclipse.equinox.p2.metadata.repository 4 1000 2026-07-05 21:17:56.971
+!MESSAGE No repository found at https://download.eclipse.org/tools/cdt/releases/latest.
+
+!ENTRY org.eclipse.equinox.p2.metadata.repository 4 1000 2026-07-05 21:17:58.733
+!MESSAGE No repository found at https://download.eclipse.org/releases/2024-09.
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-07-05 21:42:45.633
+!MESSAGE Indexed 'Env_Monitor' (24 sources, 116 headers) in 1.61 sec: 8,539 declarations; 37,515 references; 2 unresolved inclusions; 36 syntax errors; 188 unresolved names (0.41%)
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-07-05 21:51:31.635
+!MESSAGE Indexed 'Env_Monitor' (24 sources, 116 headers) in 1.32 sec: 8,539 declarations; 37,554 references; 2 unresolved inclusions; 36 syntax errors; 188 unresolved names (0.41%)
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-07-05 21:53:20.564
+!MESSAGE Indexed 'Env_Monitor' (24 sources, 116 headers) in 1.37 sec: 8,539 declarations; 37,554 references; 2 unresolved inclusions; 36 syntax errors; 188 unresolved names (0.41%)
