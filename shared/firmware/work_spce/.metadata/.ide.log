@@ -568,5 +568,8 @@
 2026-07-06 15:38:35,918 [INFO] ThirdParty:978 - Integrity check success = true
 2026-07-06 15:38:35,918 [INFO] IntegrityCheckThread:100 - exiting critical section [integrity check]
 2026-07-06 15:38:35,918 [INFO] IntegrityCheckThread:103 - End integrity checks thread
+<<<<<<< Updated upstream
 2026-07-06 15:47:35,226 [ERROR] ConfigurationRetriever:142 - IOException on connection: Read timed out
 2026-07-06 15:47:35,813 [ERROR] LogOutputStream:75 - [STDERR_REDIRECT] 
+=======
+>>>>>>> Stashed changes
