@@ -1,0 +1,8 @@
+../Core/Src/liquidcrystal_i2c.c:10:13:lcd_enable_pulse	1
+../Core/Src/liquidcrystal_i2c.c:17:13:lcd_write_nibble	1
+../Core/Src/liquidcrystal_i2c.c:25:6:lcd_send_cmd	1
+../Core/Src/liquidcrystal_i2c.c:31:6:lcd_send_data	1
+../Core/Src/liquidcrystal_i2c.c:37:6:lcd_init	1
+../Core/Src/liquidcrystal_i2c.c:60:6:lcd_send_string	2
+../Core/Src/liquidcrystal_i2c.c:66:6:lcd_clear	1
+../Core/Src/liquidcrystal_i2c.c:71:6:lcd_put_cur	3

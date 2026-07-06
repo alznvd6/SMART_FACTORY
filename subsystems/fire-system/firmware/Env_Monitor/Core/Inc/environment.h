@@ -8,20 +8,19 @@
 #ifndef INC_ENVIRONMENT_H_
 #define INC_ENVIRONMENT_H_
 
+#include <lcd_parallel.h>  // For the custom I2C LCD driver
 #include "stm32f1xx_hal.h"
-#include "main.h" // Provides the CubeMX labels (FAN_Pin, FIRE_1_Pin, etc.)
+#include "main.h"               // Provides the CubeMX labels (FAN_Pin, FIRE_1_Pin, etc.)
+#include "rtc.h"                // Cleanly includes RTC handle types at the top
 
-// System Configurations
 #define TARGET_TEMP         25.0f
 #define TOLERANCE_PERCENT   0.20f   // 20% Tolerance
 
 #define HIGH_TEMP_THRESHOLD (TARGET_TEMP * (1.0f + TOLERANCE_PERCENT)) // 30.0 C
-#define LOW_TEMP_THRESHOLD  (TARGET_TEMP * (1.0f - TOLERANCE_PERCENT)) // 20.0 C
 
 #define MOVING_AVG_SAMPLES  10
 #define ALARM_LOCK_DURATION_MS 5000 // 5 seconds lock duration
 
-// Hardware Pin Mappings linked to CubeMX labels
 #define FAN_PORT            FAN_GPIO_Port
 #define FAN_PIN             FAN_Pin
 
@@ -43,8 +42,8 @@
 #define BUZZER_PORT         BUZZER_GPIO_Port
 #define BUZZER_PIN          BUZZER_Pin
 
-// Public Functions
-void ENV_Init(ADC_HandleTypeDef *hadc_ptr, UART_HandleTypeDef *huart_ptr);
+void ENV_Init(ADC_HandleTypeDef *hadc_ptr, UART_HandleTypeDef *huart_ptr, RTC_HandleTypeDef *hrtc_ptr);
 void ENV_Task(void);
+void ENV_ReceiveHandler(uint8_t rx_char);
 
 #endif /* INC_ENVIRONMENT_H_ */

@@ -1,0 +1,24 @@
+/*
+ * liquidcrystal_i2c.h
+ *
+ *  Created on: Jul 6, 2026
+ *      Author: Navid
+ */
+
+#ifndef INC_LIQUIDCRYSTAL_I2C_H_
+#define INC_LIQUIDCRYSTAL_I2C_H_
+
+
+#include "stm32f1xx_hal.h"
+
+// Proteus PCF8574 base address is typically 0x27 or 0x3F. Shifted left by 1 for HAL 8-bit addressing.
+#define LCD_ADDR (0x27 << 1)
+
+void lcd_init(I2C_HandleTypeDef *hi2c);
+void lcd_send_cmd(char cmd);
+void lcd_send_data(char data);
+void lcd_clear(void);
+void lcd_put_cur(int row, int col);
+void lcd_send_string(char *str);
+
+#endif /* INC_LIQUIDCRYSTAL_I2C_H_ */

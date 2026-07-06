@@ -1,6 +1,10 @@
-../Core/Src/environment.c:38:6:ENV_Init	16	static
-../Core/Src/environment.c:44:6:ENV_Task	256	static
-../Core/Src/environment.c:76:13:Add_Temperature_To_History	16	static
-../Core/Src/environment.c:86:14:Get_Average_Temperature	16	static
-../Core/Src/environment.c:95:13:Control_Temperature_Actuators	16	static
-../Core/Src/environment.c:110:13:Control_Fire_Safety	24	static
+../Core/Src/environment.c:87:6:ENV_Init	24	static
+../Core/Src/environment.c:113:6:ENV_ReceiveHandler	24	static
+../Core/Src/environment.c:150:6:ENV_Task	56	static
+../Core/Src/environment.c:199:13:Update_LCD_Display	56	static
+../Core/Src/environment.c:270:13:Display_Current_UI	512	static
+../Core/Src/environment.c:379:13:Process_Menu_Input	104	static
+../Core/Src/environment.c:481:13:Add_Temperature_To_History	16	static
+../Core/Src/environment.c:492:14:Get_Average_Temperature	16	static
+../Core/Src/environment.c:503:13:Control_Temperature_Actuators	24	static
+../Core/Src/environment.c:522:13:Control_Fire_Safety	24	static

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename resource &apos;Env_Monitor/Core/Inc/liquidcrystal_i2c.h&apos; to &apos;lcd_parallel.h&apos;" description="Rename resource &apos;liquidcrystal_i2c.h&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="Core/Inc/liquidcrystal_i2c.h" name="lcd_parallel.h" stamp="1783338404696" updateReferences="true"/>
+</session>

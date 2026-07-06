@@ -19,6 +19,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "adc.h"
+#include "i2c.h"
+#include "rtc.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -45,7 +47,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+extern RTC_HandleTypeDef hrtc; // ایجاد شده توسط کدهای سخت‌افزاری CubeMX
+uint8_t rx_char;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -90,8 +93,11 @@ int main(void)
   MX_GPIO_Init();
   MX_ADC1_Init();
   MX_USART1_UART_Init();
+  MX_RTC_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-  ENV_Init(&hadc1, &huart1);
+  ENV_Init(&hadc1, &huart1, &hrtc);
+  HAL_UART_Receive_IT(&huart1, &rx_char, 1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -101,8 +107,15 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  ENV_Task();
-	  HAL_Delay(1000);
+//	  if (current_time - last_execution_time >= 1000)
+//	      {
+//	          ENV_Task();
+//	          last_execution_time = current_time;
+//	      }
+	  // Non-Blocking State Machine
+       ENV_Task();
+       HAL_Delay(2000);
+
   }
   /* USER CODE END 3 */
 }
@@ -120,9 +133,10 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
@@ -142,7 +156,8 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_RTC|RCC_PERIPHCLK_ADC;
+  PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
   PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV2;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
@@ -151,7 +166,15 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+    if (huart->Instance == USART1) {
+        // فرستادن کاراکتر دریافتی به فیلتر پردازشگر کامند ادمین
+        ENV_ReceiveHandler(rx_char);
 
+        // فعال‌سازی مجدد و گوش‌به‌زنگ نگه داشتن اینترپت برای کاراکتر بعدی
+        HAL_UART_Receive_IT(&huart1, &rx_char, 1);
+    }
+}
 /* USER CODE END 4 */
 
 /**
