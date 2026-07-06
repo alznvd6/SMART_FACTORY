@@ -1,0 +1,24 @@
+--cpu Cortex-M3
+"quality\startup_stm32f103xb.o"
+"quality\main.o"
+"quality\stm32f1xx_it.o"
+"quality\stm32f1xx_hal_msp.o"
+"quality\stm32f1xx_hal_gpio_ex.o"
+"quality\stm32f1xx_hal_adc.o"
+"quality\stm32f1xx_hal_adc_ex.o"
+"quality\stm32f1xx_hal.o"
+"quality\stm32f1xx_hal_rcc.o"
+"quality\stm32f1xx_hal_rcc_ex.o"
+"quality\stm32f1xx_hal_gpio.o"
+"quality\stm32f1xx_hal_dma.o"
+"quality\stm32f1xx_hal_cortex.o"
+"quality\stm32f1xx_hal_pwr.o"
+"quality\stm32f1xx_hal_flash.o"
+"quality\stm32f1xx_hal_flash_ex.o"
+"quality\stm32f1xx_hal_exti.o"
+"quality\stm32f1xx_hal_uart.o"
+"quality\system_stm32f1xx.o"
+--strict --scatter "Quality\Quality.sct"
+--summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "Quality.map" -o Quality\Quality.axf
