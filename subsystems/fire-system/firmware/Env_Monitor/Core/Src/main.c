@@ -114,7 +114,7 @@ int main(void)
 //	      }
 	  // Non-Blocking State Machine
        ENV_Task();
-       HAL_Delay(2000);
+       HAL_Delay(1500);
 
   }
   /* USER CODE END 3 */

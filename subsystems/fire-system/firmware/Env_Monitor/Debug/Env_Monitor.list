@@ -5174,57 +5174,57 @@ void MX_USART1_UART_Init(void)
 
   /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
- 800283c:	4b11      	ldr	r3, [pc, #68]	@ (8002884 <MX_USART1_UART_Init+0x4c>)
- 800283e:	4a12      	ldr	r2, [pc, #72]	@ (8002888 <MX_USART1_UART_Init+0x50>)
+ 800283c:	4b10      	ldr	r3, [pc, #64]	@ (8002880 <MX_USART1_UART_Init+0x48>)
+ 800283e:	4a11      	ldr	r2, [pc, #68]	@ (8002884 <MX_USART1_UART_Init+0x4c>)
  8002840:	601a      	str	r2, [r3, #0]
-  huart1.Init.BaudRate = 115200;
- 8002842:	4b10      	ldr	r3, [pc, #64]	@ (8002884 <MX_USART1_UART_Init+0x4c>)
- 8002844:	f44f 32e1 	mov.w	r2, #115200	@ 0x1c200
- 8002848:	605a      	str	r2, [r3, #4]
+  huart1.Init.BaudRate = 112500;
+ 8002842:	4b0f      	ldr	r3, [pc, #60]	@ (8002880 <MX_USART1_UART_Init+0x48>)
+ 8002844:	4a10      	ldr	r2, [pc, #64]	@ (8002888 <MX_USART1_UART_Init+0x50>)
+ 8002846:	605a      	str	r2, [r3, #4]
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
- 800284a:	4b0e      	ldr	r3, [pc, #56]	@ (8002884 <MX_USART1_UART_Init+0x4c>)
- 800284c:	2200      	movs	r2, #0
- 800284e:	609a      	str	r2, [r3, #8]
+ 8002848:	4b0d      	ldr	r3, [pc, #52]	@ (8002880 <MX_USART1_UART_Init+0x48>)
+ 800284a:	2200      	movs	r2, #0
+ 800284c:	609a      	str	r2, [r3, #8]
   huart1.Init.StopBits = UART_STOPBITS_1;
- 8002850:	4b0c      	ldr	r3, [pc, #48]	@ (8002884 <MX_USART1_UART_Init+0x4c>)
- 8002852:	2200      	movs	r2, #0
- 8002854:	60da      	str	r2, [r3, #12]
+ 800284e:	4b0c      	ldr	r3, [pc, #48]	@ (8002880 <MX_USART1_UART_Init+0x48>)
+ 8002850:	2200      	movs	r2, #0
+ 8002852:	60da      	str	r2, [r3, #12]
   huart1.Init.Parity = UART_PARITY_NONE;
- 8002856:	4b0b      	ldr	r3, [pc, #44]	@ (8002884 <MX_USART1_UART_Init+0x4c>)
- 8002858:	2200      	movs	r2, #0
- 800285a:	611a      	str	r2, [r3, #16]
+ 8002854:	4b0a      	ldr	r3, [pc, #40]	@ (8002880 <MX_USART1_UART_Init+0x48>)
+ 8002856:	2200      	movs	r2, #0
+ 8002858:	611a      	str	r2, [r3, #16]
   huart1.Init.Mode = UART_MODE_TX_RX;
- 800285c:	4b09      	ldr	r3, [pc, #36]	@ (8002884 <MX_USART1_UART_Init+0x4c>)
- 800285e:	220c      	movs	r2, #12
- 8002860:	615a      	str	r2, [r3, #20]
+ 800285a:	4b09      	ldr	r3, [pc, #36]	@ (8002880 <MX_USART1_UART_Init+0x48>)
+ 800285c:	220c      	movs	r2, #12
+ 800285e:	615a      	str	r2, [r3, #20]
   huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
- 8002862:	4b08      	ldr	r3, [pc, #32]	@ (8002884 <MX_USART1_UART_Init+0x4c>)
- 8002864:	2200      	movs	r2, #0
- 8002866:	619a      	str	r2, [r3, #24]
+ 8002860:	4b07      	ldr	r3, [pc, #28]	@ (8002880 <MX_USART1_UART_Init+0x48>)
+ 8002862:	2200      	movs	r2, #0
+ 8002864:	619a      	str	r2, [r3, #24]
   huart1.Init.OverSampling = UART_OVERSAMPLING_16;
- 8002868:	4b06      	ldr	r3, [pc, #24]	@ (8002884 <MX_USART1_UART_Init+0x4c>)
- 800286a:	2200      	movs	r2, #0
- 800286c:	61da      	str	r2, [r3, #28]
+ 8002866:	4b06      	ldr	r3, [pc, #24]	@ (8002880 <MX_USART1_UART_Init+0x48>)
+ 8002868:	2200      	movs	r2, #0
+ 800286a:	61da      	str	r2, [r3, #28]
   if (HAL_UART_Init(&huart1) != HAL_OK)
- 800286e:	4805      	ldr	r0, [pc, #20]	@ (8002884 <MX_USART1_UART_Init+0x4c>)
- 8002870:	f002 fd64 	bl	800533c <HAL_UART_Init>
- 8002874:	4603      	mov	r3, r0
- 8002876:	2b00      	cmp	r3, #0
- 8002878:	d001      	beq.n	800287e <MX_USART1_UART_Init+0x46>
+ 800286c:	4804      	ldr	r0, [pc, #16]	@ (8002880 <MX_USART1_UART_Init+0x48>)
+ 800286e:	f002 fd65 	bl	800533c <HAL_UART_Init>
+ 8002872:	4603      	mov	r3, r0
+ 8002874:	2b00      	cmp	r3, #0
+ 8002876:	d001      	beq.n	800287c <MX_USART1_UART_Init+0x44>
   {
     Error_Handler();
- 800287a:	f7ff fe39 	bl	80024f0 <Error_Handler>
+ 8002878:	f7ff fe3a 	bl	80024f0 <Error_Handler>
   }
   /* USER CODE BEGIN USART1_Init 2 */
 
   /* USER CODE END USART1_Init 2 */
 
 }
- 800287e:	bf00      	nop
- 8002880:	bd80      	pop	{r7, pc}
- 8002882:	bf00      	nop
- 8002884:	20000310 	.word	0x20000310
- 8002888:	40013800 	.word	0x40013800
+ 800287c:	bf00      	nop
+ 800287e:	bd80      	pop	{r7, pc}
+ 8002880:	20000310 	.word	0x20000310
+ 8002884:	40013800 	.word	0x40013800
+ 8002888:	0001b774 	.word	0x0001b774
 
 0800288c <HAL_UART_MspInit>:
 

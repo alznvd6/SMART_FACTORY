@@ -763,3 +763,527 @@ org.eclipse.equinox.p2.core.ProvisionException: No repository found at https://s
 
 !ENTRY org.eclipse.cdt.core 1 0 2026-07-06 15:21:27.026
 !MESSAGE Indexed 'Env_Monitor' (30 sources, 124 headers) in 1.38 sec: 10,082 declarations; 53,608 references; 2 unresolved inclusions; 36 syntax errors; 190 unresolved names (0.3%)
+!SESSION 2026-07-06 18:32:06.954 -----------------------------------------------
+eclipse.buildId=Version 1.19.0
+java.version=21.0.3
+java.vendor=Eclipse Adoptium
+BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=en_US
+Framework arguments:  E:\SMART_FACTORY\subsystems\fire-system\firmware\Env_Monitor\.project
+Command-line arguments:  -os win32 -ws win32 -arch x86_64 E:\SMART_FACTORY\subsystems\fire-system\firmware\Env_Monitor\.project
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 4 4 2026-07-06 18:32:13.364
+!MESSAGE CubeMX plugin appears to be active, Log4j initialization might be too late.
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2026-07-06 18:32:13.367
+!MESSAGE Log4j2 initialized with config file E:\SMART_FACTORY\shared\firmware\work_spce\.metadata\.log4j2.xml
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:16.856
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:16.857
+!MESSAGE System property http.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:16.857
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:16.857
+!MESSAGE System property https.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:16.859
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:16.859
+!MESSAGE System property socksProxyPort is set to 59893 but should not be set.
+
+!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2026-07-06 18:32:19.654
+!MESSAGE Started RMI Server, listening on port 41337
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-07-06 18:32:22.054
+!MESSAGE Indexed 'Env_Monitor' (30 sources, 124 headers) in 2.28 sec: 10,079 declarations; 53,670 references; 2 unresolved inclusions; 36 syntax errors; 188 unresolved names (0.29%)
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.609
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.609
+!MESSAGE System property http.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.609
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.610
+!MESSAGE System property https.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.610
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.610
+!MESSAGE System property socksProxyPort is set to 59893 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.633
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.633
+!MESSAGE System property http.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.633
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.633
+!MESSAGE System property https.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.633
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.633
+!MESSAGE System property socksProxyPort is set to 59893 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.633
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.634
+!MESSAGE System property http.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.634
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.634
+!MESSAGE System property https.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.635
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.635
+!MESSAGE System property socksProxyPort is set to 59893 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.635
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.636
+!MESSAGE System property http.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.636
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.636
+!MESSAGE System property https.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.637
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.637
+!MESSAGE System property socksProxyPort is set to 59893 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.637
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.638
+!MESSAGE System property http.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.638
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.639
+!MESSAGE System property https.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.639
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.639
+!MESSAGE System property socksProxyPort is set to 59893 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.640
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.640
+!MESSAGE System property http.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.641
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.641
+!MESSAGE System property https.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.641
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.642
+!MESSAGE System property socksProxyPort is set to 59893 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.643
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.643
+!MESSAGE System property http.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.643
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.644
+!MESSAGE System property https.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.644
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.644
+!MESSAGE System property socksProxyPort is set to 59893 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.646
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.646
+!MESSAGE System property http.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.646
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.647
+!MESSAGE System property https.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.647
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:23.647
+!MESSAGE System property socksProxyPort is set to 59893 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.290
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.290
+!MESSAGE System property http.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.290
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.291
+!MESSAGE System property https.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.291
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.292
+!MESSAGE System property socksProxyPort is set to 59893 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.293
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.293
+!MESSAGE System property http.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.293
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.294
+!MESSAGE System property https.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.294
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.294
+!MESSAGE System property socksProxyPort is set to 59893 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.294
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.294
+!MESSAGE System property http.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.295
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.295
+!MESSAGE System property https.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.295
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.296
+!MESSAGE System property socksProxyPort is set to 59893 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.296
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.296
+!MESSAGE System property http.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.296
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.298
+!MESSAGE System property https.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.298
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.298
+!MESSAGE System property socksProxyPort is set to 59893 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.299
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.299
+!MESSAGE System property http.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.299
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.299
+!MESSAGE System property https.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.300
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.300
+!MESSAGE System property socksProxyPort is set to 59893 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.301
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.301
+!MESSAGE System property http.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.301
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.301
+!MESSAGE System property https.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.302
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.302
+!MESSAGE System property socksProxyPort is set to 59893 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.302
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.302
+!MESSAGE System property http.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.302
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.302
+!MESSAGE System property https.proxyPort is set to 59894 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.303
+!MESSAGE System property socksProxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-07-06 18:32:25.303
+!MESSAGE System property socksProxyPort is set to 59893 but should not be set.
+
+!ENTRY org.eclipse.equinox.p2.core 4 0 2026-07-06 18:32:56.154
+!MESSAGE Provisioning exception
+!STACK 1
+org.eclipse.equinox.p2.core.ProvisionException: No repository found at https://sw-center.st.com/stm32cubeide/openstlinux/updatesite1/5.1.0.
+	at org.eclipse.equinox.internal.p2.repository.helpers.AbstractRepositoryManager.fail(AbstractRepositoryManager.java:417)
+	at org.eclipse.equinox.internal.p2.repository.helpers.AbstractRepositoryManager.loadRepository(AbstractRepositoryManager.java:721)
+	at org.eclipse.equinox.internal.p2.metadata.repository.MetadataRepositoryManager.loadRepository(MetadataRepositoryManager.java:110)
+	at org.eclipse.equinox.internal.p2.metadata.repository.MetadataRepositoryManager.loadRepository(MetadataRepositoryManager.java:105)
+	at org.eclipse.equinox.internal.p2.metadata.repository.CompositeMetadataRepository.addChild(CompositeMetadataRepository.java:161)
+	at org.eclipse.equinox.internal.p2.metadata.repository.CompositeMetadataRepository.<init>(CompositeMetadataRepository.java:93)
+	at org.eclipse.equinox.internal.p2.metadata.repository.CompositeMetadataRepositoryFactory.load(CompositeMetadataRepositoryFactory.java:124)
+	at org.eclipse.equinox.internal.p2.metadata.repository.MetadataRepositoryManager.factoryLoad(MetadataRepositoryManager.java:63)
+	at org.eclipse.equinox.internal.p2.repository.helpers.AbstractRepositoryManager.loadRepository(AbstractRepositoryManager.java:799)
+	at org.eclipse.equinox.internal.p2.repository.helpers.AbstractRepositoryManager.loadRepository(AbstractRepositoryManager.java:697)
+	at org.eclipse.equinox.internal.p2.metadata.repository.MetadataRepositoryManager.loadRepository(MetadataRepositoryManager.java:110)
+	at org.eclipse.equinox.internal.p2.metadata.repository.MetadataRepositoryManager.loadRepository(MetadataRepositoryManager.java:105)
+	at org.eclipse.equinox.internal.p2.updatechecker.UpdateChecker.getAvailableRepositories(UpdateChecker.java:164)
+	at org.eclipse.equinox.internal.p2.updatechecker.UpdateChecker.checkForUpdates(UpdateChecker.java:144)
+	at org.eclipse.equinox.internal.p2.updatechecker.UpdateChecker$UpdateCheckThread.run(UpdateChecker.java:83)
+!SUBENTRY 1 org.eclipse.equinox.p2.metadata.repository 4 1000 2026-07-06 18:32:56.155
+!MESSAGE No repository found at https://sw-center.st.com/stm32cubeide/openstlinux/updatesite1/5.1.0.
+
+!ENTRY org.eclipse.equinox.p2.metadata.repository 4 1002 2026-07-06 18:32:56.159
+!MESSAGE Unable to read repository at https://sw-center.st.com/stm32cubeide/openstlinux/updatesite1.
+!STACK 1
+org.eclipse.equinox.p2.core.ProvisionException: No repository found at https://sw-center.st.com/stm32cubeide/openstlinux/updatesite1/5.1.0.
+	at org.eclipse.equinox.internal.p2.repository.helpers.AbstractRepositoryManager.fail(AbstractRepositoryManager.java:417)
+	at org.eclipse.equinox.internal.p2.repository.helpers.AbstractRepositoryManager.loadRepository(AbstractRepositoryManager.java:721)
+	at org.eclipse.equinox.internal.p2.metadata.repository.MetadataRepositoryManager.loadRepository(MetadataRepositoryManager.java:110)
+	at org.eclipse.equinox.internal.p2.metadata.repository.MetadataRepositoryManager.loadRepository(MetadataRepositoryManager.java:105)
+	at org.eclipse.equinox.internal.p2.metadata.repository.CompositeMetadataRepository.addChild(CompositeMetadataRepository.java:161)
+	at org.eclipse.equinox.internal.p2.metadata.repository.CompositeMetadataRepository.<init>(CompositeMetadataRepository.java:93)
+	at org.eclipse.equinox.internal.p2.metadata.repository.CompositeMetadataRepositoryFactory.load(CompositeMetadataRepositoryFactory.java:124)
+	at org.eclipse.equinox.internal.p2.metadata.repository.MetadataRepositoryManager.factoryLoad(MetadataRepositoryManager.java:63)
+	at org.eclipse.equinox.internal.p2.repository.helpers.AbstractRepositoryManager.loadRepository(AbstractRepositoryManager.java:799)
+	at org.eclipse.equinox.internal.p2.repository.helpers.AbstractRepositoryManager.loadRepository(AbstractRepositoryManager.java:697)
+	at org.eclipse.equinox.internal.p2.metadata.repository.MetadataRepositoryManager.loadRepository(MetadataRepositoryManager.java:110)
+	at org.eclipse.equinox.internal.p2.metadata.repository.MetadataRepositoryManager.loadRepository(MetadataRepositoryManager.java:105)
+	at org.eclipse.equinox.internal.p2.updatechecker.UpdateChecker.getAvailableRepositories(UpdateChecker.java:164)
+	at org.eclipse.equinox.internal.p2.updatechecker.UpdateChecker.checkForUpdates(UpdateChecker.java:144)
+	at org.eclipse.equinox.internal.p2.updatechecker.UpdateChecker$UpdateCheckThread.run(UpdateChecker.java:83)
+!SUBENTRY 1 org.eclipse.equinox.p2.metadata.repository 4 1000 2026-07-06 18:32:56.159
+!MESSAGE No repository found at https://sw-center.st.com/stm32cubeide/openstlinux/updatesite1/5.1.0.
+
+!ENTRY org.eclipse.equinox.p2.metadata.repository 4 1000 2026-07-06 18:32:58.348
+!MESSAGE No repository found at https://sw-center.st.com/stm32cubeide/updatesite1.
+
+!ENTRY org.eclipse.equinox.p2.metadata.repository 4 1000 2026-07-06 18:33:01.040
+!MESSAGE No repository found at https://download.eclipse.org/tools/cdt/releases/latest.
+
+!ENTRY org.eclipse.equinox.p2.metadata.repository 4 1000 2026-07-06 18:33:02.942
+!MESSAGE No repository found at https://download.eclipse.org/releases/2024-09.
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-07-06 18:37:57.313
+!MESSAGE Indexed 'Env_Monitor' (30 sources, 124 headers) in 1.77 sec: 10,079 declarations; 53,670 references; 2 unresolved inclusions; 36 syntax errors; 188 unresolved names (0.29%)
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-07-06 19:02:48.312
+!MESSAGE Indexed 'Serial_Bridge' (511 sources, 301 headers) in 5.73 sec: 35,724 declarations; 324,649 references; 19 unresolved inclusions; 256 syntax errors; 5,582 unresolved names (1.5%)
+
+!ENTRY org.eclipse.cdt.core 4 0 2026-07-06 19:05:46.044
+!MESSAGE Can't load preferences from file E:/SMART_FACTORY/subsystems/fire-system/firmware/Serial_Bridge/.settings/language.settings.xml
+!STACK 1
+org.eclipse.core.runtime.CoreException: Internal error while trying to load XML document
+	at org.eclipse.cdt.internal.core.XmlUtil.loadXml(XmlUtil.java:276)
+	at org.eclipse.cdt.internal.core.language.settings.providers.LanguageSettingsProvidersSerializer.loadLanguageSettings(LanguageSettingsProvidersSerializer.java:1179)
+	at org.eclipse.cdt.internal.core.settings.model.xml.XmlProjectDescriptionStorage.loadProjectDescription(XmlProjectDescriptionStorage.java:508)
+	at org.eclipse.cdt.internal.core.settings.model.xml.XmlProjectDescriptionStorage.getProjectDescription(XmlProjectDescriptionStorage.java:239)
+	at org.eclipse.cdt.internal.core.settings.model.CProjectDescriptionManager.getProjectDescriptionInternal(CProjectDescriptionManager.java:426)
+	at org.eclipse.cdt.internal.core.settings.model.CProjectDescriptionManager.getProjectDescription(CProjectDescriptionManager.java:408)
+	at org.eclipse.cdt.internal.core.settings.model.CProjectDescriptionManager.getProjectDescription(CProjectDescriptionManager.java:402)
+	at org.eclipse.cdt.internal.core.settings.model.CProjectDescriptionManager.getProjectDescription(CProjectDescriptionManager.java:395)
+	at org.eclipse.cdt.core.model.CoreModel.getProjectDescription(CoreModel.java:1436)
+	at org.eclipse.cdt.managedbuilder.internal.core.ManagedBuildInfo.findExistingDefaultConfiguration(ManagedBuildInfo.java:272)
+	at org.eclipse.cdt.managedbuilder.internal.core.ManagedBuildInfo.getDefaultConfiguration(ManagedBuildInfo.java:258)
+	at elf_analyzer.ElfAnalyzerView.getFile(ElfAnalyzerView.java:337)
+	at elf_analyzer.ElfAnalyzerView.resourceChanged(ElfAnalyzerView.java:498)
+	at org.eclipse.core.internal.events.NotificationManager$1.run(NotificationManager.java:321)
+	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:47)
+	at org.eclipse.core.internal.events.NotificationManager.notify(NotificationManager.java:311)
+	at org.eclipse.core.internal.events.NotificationManager.broadcastChanges(NotificationManager.java:174)
+	at org.eclipse.core.internal.resources.Workspace.broadcastBuildEvent(Workspace.java:445)
+	at org.eclipse.core.internal.events.AutoBuildJob$AutoBuildOffJob.run(AutoBuildJob.java:377)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+Caused by: org.eclipse.core.internal.resources.ResourceException: File not found: E:\SMART_FACTORY\subsystems\fire-system\firmware\Serial_Bridge\.settings\language.settings.xml.
+	at org.eclipse.core.internal.localstore.FileSystemResourceManager.read(FileSystemResourceManager.java:886)
+	at org.eclipse.core.internal.resources.File.getContents(File.java:344)
+	at org.eclipse.core.internal.resources.File.getContents(File.java:334)
+	at org.eclipse.cdt.internal.core.XmlUtil.loadXml(XmlUtil.java:269)
+	... 19 more
+Caused by: org.eclipse.core.runtime.CoreException: File not found: E:\SMART_FACTORY\subsystems\fire-system\firmware\Serial_Bridge\.settings\language.settings.xml.
+	at org.eclipse.core.internal.filesystem.Policy.error(Policy.java:32)
+	at org.eclipse.core.internal.filesystem.local.LocalFile.handleReadIOException(LocalFile.java:498)
+	at org.eclipse.core.internal.filesystem.local.LocalFile.openInputStream(LocalFile.java:479)
+	at org.eclipse.core.internal.localstore.FileSystemResourceManager.read(FileSystemResourceManager.java:881)
+	... 22 more
+Caused by: java.io.FileNotFoundException: E:\SMART_FACTORY\subsystems\fire-system\firmware\Serial_Bridge\.settings\language.settings.xml (The system cannot find the path specified)
+	at java.base/java.io.FileInputStream.open0(Native Method)
+	at java.base/java.io.FileInputStream.open(FileInputStream.java:213)
+	at java.base/java.io.FileInputStream.<init>(FileInputStream.java:152)
+	at org.eclipse.core.internal.filesystem.local.LocalFile.openInputStream(LocalFile.java:477)
+	... 23 more
+!SUBENTRY 1 org.eclipse.cdt.core 4 0 2026-07-06 19:05:46.045
+!MESSAGE Internal error while trying to load XML document
+!STACK 1
+org.eclipse.core.internal.resources.ResourceException(/Serial_Bridge/.settings/language.settings.xml)[368]: org.eclipse.core.runtime.CoreException: File not found: E:\SMART_FACTORY\subsystems\fire-system\firmware\Serial_Bridge\.settings\language.settings.xml.
+	at org.eclipse.core.internal.filesystem.Policy.error(Policy.java:32)
+	at org.eclipse.core.internal.filesystem.local.LocalFile.handleReadIOException(LocalFile.java:498)
+	at org.eclipse.core.internal.filesystem.local.LocalFile.openInputStream(LocalFile.java:479)
+	at org.eclipse.core.internal.localstore.FileSystemResourceManager.read(FileSystemResourceManager.java:881)
+	at org.eclipse.core.internal.resources.File.getContents(File.java:344)
+	at org.eclipse.core.internal.resources.File.getContents(File.java:334)
+	at org.eclipse.cdt.internal.core.XmlUtil.loadXml(XmlUtil.java:269)
+	at org.eclipse.cdt.internal.core.language.settings.providers.LanguageSettingsProvidersSerializer.loadLanguageSettings(LanguageSettingsProvidersSerializer.java:1179)
+	at org.eclipse.cdt.internal.core.settings.model.xml.XmlProjectDescriptionStorage.loadProjectDescription(XmlProjectDescriptionStorage.java:508)
+	at org.eclipse.cdt.internal.core.settings.model.xml.XmlProjectDescriptionStorage.getProjectDescription(XmlProjectDescriptionStorage.java:239)
+	at org.eclipse.cdt.internal.core.settings.model.CProjectDescriptionManager.getProjectDescriptionInternal(CProjectDescriptionManager.java:426)
+	at org.eclipse.cdt.internal.core.settings.model.CProjectDescriptionManager.getProjectDescription(CProjectDescriptionManager.java:408)
+	at org.eclipse.cdt.internal.core.settings.model.CProjectDescriptionManager.getProjectDescription(CProjectDescriptionManager.java:402)
+	at org.eclipse.cdt.internal.core.settings.model.CProjectDescriptionManager.getProjectDescription(CProjectDescriptionManager.java:395)
+	at org.eclipse.cdt.core.model.CoreModel.getProjectDescription(CoreModel.java:1436)
+	at org.eclipse.cdt.managedbuilder.internal.core.ManagedBuildInfo.findExistingDefaultConfiguration(ManagedBuildInfo.java:272)
+	at org.eclipse.cdt.managedbuilder.internal.core.ManagedBuildInfo.getDefaultConfiguration(ManagedBuildInfo.java:258)
+	at elf_analyzer.ElfAnalyzerView.getFile(ElfAnalyzerView.java:337)
+	at elf_analyzer.ElfAnalyzerView.resourceChanged(ElfAnalyzerView.java:498)
+	at org.eclipse.core.internal.events.NotificationManager$1.run(NotificationManager.java:321)
+	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:47)
+	at org.eclipse.core.internal.events.NotificationManager.notify(NotificationManager.java:311)
+	at org.eclipse.core.internal.events.NotificationManager.broadcastChanges(NotificationManager.java:174)
+	at org.eclipse.core.internal.resources.Workspace.broadcastBuildEvent(Workspace.java:445)
+	at org.eclipse.core.internal.events.AutoBuildJob$AutoBuildOffJob.run(AutoBuildJob.java:377)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+Caused by: java.io.FileNotFoundException: E:\SMART_FACTORY\subsystems\fire-system\firmware\Serial_Bridge\.settings\language.settings.xml (The system cannot find the path specified)
+	at java.base/java.io.FileInputStream.open0(Native Method)
+	at java.base/java.io.FileInputStream.open(FileInputStream.java:213)
+	at java.base/java.io.FileInputStream.<init>(FileInputStream.java:152)
+	at org.eclipse.core.internal.filesystem.local.LocalFile.openInputStream(LocalFile.java:477)
+	... 23 more
+!SUBENTRY 2 org.eclipse.core.resources 4 368 2026-07-06 19:05:46.049
+!MESSAGE File not found: E:\SMART_FACTORY\subsystems\fire-system\firmware\Serial_Bridge\.settings\language.settings.xml.
+!STACK 1
+org.eclipse.core.runtime.CoreException: File not found: E:\SMART_FACTORY\subsystems\fire-system\firmware\Serial_Bridge\.settings\language.settings.xml.
+	at org.eclipse.core.internal.filesystem.Policy.error(Policy.java:32)
+	at org.eclipse.core.internal.filesystem.local.LocalFile.handleReadIOException(LocalFile.java:498)
+	at org.eclipse.core.internal.filesystem.local.LocalFile.openInputStream(LocalFile.java:479)
+	at org.eclipse.core.internal.localstore.FileSystemResourceManager.read(FileSystemResourceManager.java:881)
+	at org.eclipse.core.internal.resources.File.getContents(File.java:344)
+	at org.eclipse.core.internal.resources.File.getContents(File.java:334)
+	at org.eclipse.cdt.internal.core.XmlUtil.loadXml(XmlUtil.java:269)
+	at org.eclipse.cdt.internal.core.language.settings.providers.LanguageSettingsProvidersSerializer.loadLanguageSettings(LanguageSettingsProvidersSerializer.java:1179)
+	at org.eclipse.cdt.internal.core.settings.model.xml.XmlProjectDescriptionStorage.loadProjectDescription(XmlProjectDescriptionStorage.java:508)
+	at org.eclipse.cdt.internal.core.settings.model.xml.XmlProjectDescriptionStorage.getProjectDescription(XmlProjectDescriptionStorage.java:239)
+	at org.eclipse.cdt.internal.core.settings.model.CProjectDescriptionManager.getProjectDescriptionInternal(CProjectDescriptionManager.java:426)
+	at org.eclipse.cdt.internal.core.settings.model.CProjectDescriptionManager.getProjectDescription(CProjectDescriptionManager.java:408)
+	at org.eclipse.cdt.internal.core.settings.model.CProjectDescriptionManager.getProjectDescription(CProjectDescriptionManager.java:402)
+	at org.eclipse.cdt.internal.core.settings.model.CProjectDescriptionManager.getProjectDescription(CProjectDescriptionManager.java:395)
+	at org.eclipse.cdt.core.model.CoreModel.getProjectDescription(CoreModel.java:1436)
+	at org.eclipse.cdt.managedbuilder.internal.core.ManagedBuildInfo.findExistingDefaultConfiguration(ManagedBuildInfo.java:272)
+	at org.eclipse.cdt.managedbuilder.internal.core.ManagedBuildInfo.getDefaultConfiguration(ManagedBuildInfo.java:258)
+	at elf_analyzer.ElfAnalyzerView.getFile(ElfAnalyzerView.java:337)
+	at elf_analyzer.ElfAnalyzerView.resourceChanged(ElfAnalyzerView.java:498)
+	at org.eclipse.core.internal.events.NotificationManager$1.run(NotificationManager.java:321)
+	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:47)
+	at org.eclipse.core.internal.events.NotificationManager.notify(NotificationManager.java:311)
+	at org.eclipse.core.internal.events.NotificationManager.broadcastChanges(NotificationManager.java:174)
+	at org.eclipse.core.internal.resources.Workspace.broadcastBuildEvent(Workspace.java:445)
+	at org.eclipse.core.internal.events.AutoBuildJob$AutoBuildOffJob.run(AutoBuildJob.java:377)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+Caused by: java.io.FileNotFoundException: E:\SMART_FACTORY\subsystems\fire-system\firmware\Serial_Bridge\.settings\language.settings.xml (The system cannot find the path specified)
+	at java.base/java.io.FileInputStream.open0(Native Method)
+	at java.base/java.io.FileInputStream.open(FileInputStream.java:213)
+	at java.base/java.io.FileInputStream.<init>(FileInputStream.java:152)
+	at org.eclipse.core.internal.filesystem.local.LocalFile.openInputStream(LocalFile.java:477)
+	... 23 more
+!SUBENTRY 3 org.eclipse.core.filesystem 4 269 2026-07-06 19:05:46.050
+!MESSAGE File not found: E:\SMART_FACTORY\subsystems\fire-system\firmware\Serial_Bridge\.settings\language.settings.xml.
+!STACK 0
+java.io.FileNotFoundException: E:\SMART_FACTORY\subsystems\fire-system\firmware\Serial_Bridge\.settings\language.settings.xml (The system cannot find the path specified)
+	at java.base/java.io.FileInputStream.open0(Native Method)
+	at java.base/java.io.FileInputStream.open(FileInputStream.java:213)
+	at java.base/java.io.FileInputStream.<init>(FileInputStream.java:152)
+	at org.eclipse.core.internal.filesystem.local.LocalFile.openInputStream(LocalFile.java:477)
+	at org.eclipse.core.internal.localstore.FileSystemResourceManager.read(FileSystemResourceManager.java:881)
+	at org.eclipse.core.internal.resources.File.getContents(File.java:344)
+	at org.eclipse.core.internal.resources.File.getContents(File.java:334)
+	at org.eclipse.cdt.internal.core.XmlUtil.loadXml(XmlUtil.java:269)
+	at org.eclipse.cdt.internal.core.language.settings.providers.LanguageSettingsProvidersSerializer.loadLanguageSettings(LanguageSettingsProvidersSerializer.java:1179)
+	at org.eclipse.cdt.internal.core.settings.model.xml.XmlProjectDescriptionStorage.loadProjectDescription(XmlProjectDescriptionStorage.java:508)
+	at org.eclipse.cdt.internal.core.settings.model.xml.XmlProjectDescriptionStorage.getProjectDescription(XmlProjectDescriptionStorage.java:239)
+	at org.eclipse.cdt.internal.core.settings.model.CProjectDescriptionManager.getProjectDescriptionInternal(CProjectDescriptionManager.java:426)
+	at org.eclipse.cdt.internal.core.settings.model.CProjectDescriptionManager.getProjectDescription(CProjectDescriptionManager.java:408)
+	at org.eclipse.cdt.internal.core.settings.model.CProjectDescriptionManager.getProjectDescription(CProjectDescriptionManager.java:402)
+	at org.eclipse.cdt.internal.core.settings.model.CProjectDescriptionManager.getProjectDescription(CProjectDescriptionManager.java:395)
+	at org.eclipse.cdt.core.model.CoreModel.getProjectDescription(CoreModel.java:1436)
+	at org.eclipse.cdt.managedbuilder.internal.core.ManagedBuildInfo.findExistingDefaultConfiguration(ManagedBuildInfo.java:272)
+	at org.eclipse.cdt.managedbuilder.internal.core.ManagedBuildInfo.getDefaultConfiguration(ManagedBuildInfo.java:258)
+	at elf_analyzer.ElfAnalyzerView.getFile(ElfAnalyzerView.java:337)
+	at elf_analyzer.ElfAnalyzerView.resourceChanged(ElfAnalyzerView.java:498)
+	at org.eclipse.core.internal.events.NotificationManager$1.run(NotificationManager.java:321)
+	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:47)
+	at org.eclipse.core.internal.events.NotificationManager.notify(NotificationManager.java:311)
+	at org.eclipse.core.internal.events.NotificationManager.broadcastChanges(NotificationManager.java:174)
+	at org.eclipse.core.internal.resources.Workspace.broadcastBuildEvent(Workspace.java:445)
+	at org.eclipse.core.internal.events.AutoBuildJob$AutoBuildOffJob.run(AutoBuildJob.java:377)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-07-06 19:06:13.179
+!MESSAGE Indexed 'Serial_Bridge' (18 sources, 105 headers) in 1.06 sec: 7,820 declarations; 29,811 references; 6 unresolved inclusions; 741 syntax errors; 946 unresolved names (2.5%)
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-07-06 19:41:30.693
+!MESSAGE Indexed 'Serial_Bridge' (18 sources, 106 headers) in 1.23 sec: 7,828 declarations; 31,567 references; 2 unresolved inclusions; 36 syntax errors; 188 unresolved names (0.47%)
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-07-06 19:53:08.757
+!MESSAGE Indexed 'Serial_Bridge' (18 sources, 106 headers) in 1.22 sec: 7,831 declarations; 31,576 references; 2 unresolved inclusions; 36 syntax errors; 188 unresolved names (0.47%)
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-07-06 20:49:02.955
+!MESSAGE Indexed 'Bridge_Board' (18 sources, 106 headers) in 1.03 sec: 7,807 declarations; 31,166 references; 2 unresolved inclusions; 36 syntax errors; 188 unresolved names (0.48%)

@@ -1,76 +1,10 @@
-15:23:45 **** Incremental Build of configuration Debug for project Env_Monitor ****
+19:04:44 **** Incremental Build of configuration Debug for project Env_Monitor ****
 make -j16 all 
-arm-none-eabi-gcc "../Core/Src/environment.c" -mcpu=cortex-m3 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F103xB -c -I../Core/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/environment.d" -MT"Core/Src/environment.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/environment.o"
-arm-none-eabi-gcc "../Core/Src/liquidcrystal_i2c.c" -mcpu=cortex-m3 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F103xB -c -I../Core/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/liquidcrystal_i2c.d" -MT"Core/Src/liquidcrystal_i2c.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/liquidcrystal_i2c.o"
-../Core/Src/environment.c: In function 'Display_Current_UI':
-../Core/Src/environment.c:335:22: warning: format '%f' expects a matching 'double' argument [-Wformat=]
-  335 |                      "=============================\r\n"
-      |                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-../Core/Src/environment.c:338:48: note: format string is defined here
-  338 |                      " Current Target Temp: %.1f C\r\n"
-      |                                             ~~~^
-      |                                                |
-      |                                                double
-../Core/Src/environment.c:304:22: warning: '
-==========================...' directive output truncated writing 107 bytes into a region of size between 13 and 47 [-Wformat-truncation=]
-  304 |                      "==================================================\r\n"
-      |                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-../Core/Src/environment.c:312:68: note: format string is defined here
-  311 |                      " Lockout Lock: %s\r\n"
-      |                                        ~~~~~                        
-  312 |                      "==================================================\r\n"
-      |                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~
-  313 |                      " > Enter '0' to return to Main Menu.\r\n\r\n"
-      |                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
-  314 |                      "Selection: \r\n",
-      |                      ~~~~~~~~~~~~~~~~                               
-../Core/Src/environment.c:303:13: note: 'snprintf' output 411 or more bytes (assuming 445) into a destination of size 350
-  303 |             snprintf(uart_buffer, sizeof(uart_buffer),
-      |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  304 |                      "==================================================\r\n"
-      |                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  305 |                      "         REAL-TIMEE MONITORING MODE (EVERY 1s)     \r\n"
-      |                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  306 |                      "==================================================\r\n"
-      |                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  307 |                      " Timestamp   : [%04d-%02d-%02d] %02d:%02d:%02d\r\n"
-      |                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  308 |                      " Current Temp: %.1f C\r\n"
-      |                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  309 |                      " Average Temp: %.1f C (Target: %.1f C)\r\n"
-      |                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  310 |                      " Fire Status : %s\r\n"
-      |                      ~~~~~~~~~~~~~~~~~~~~~~~
-  311 |                      " Lockout Lock: %s\r\n"
-      |                      ~~~~~~~~~~~~~~~~~~~~~~~
-  312 |                      "==================================================\r\n"
-      |                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  313 |                      " > Enter '0' to return to Main Menu.\r\n\r\n"
-      |                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  314 |                      "Selection: \r\n",
-      |                      ~~~~~~~~~~~~~~~~~~
-  315 |                      2000 + sDate.Year, sDate.Month, sDate.Date,
-      |                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  316 |                      sTime.Hours, sTime.Minutes, sTime.Seconds,
-      |                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  317 |                      cur_t, avg_t, target_temp, fire_msg,
-      |                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  318 |                      is_system_locked ? "!!! LOCKED OUT !!!" : "NORMAL OPERATION");
-      |                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-arm-none-eabi-gcc -o "Env_Monitor.elf" @"objects.list"   -mcpu=cortex-m3 -T"E:\SMART_FACTORY\subsystems\fire-system\firmware\Env_Monitor\STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Env_Monitor.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -u _printf_float -u _scanf_float -Wl,--start-group -lc -lm -Wl,--end-group
-Finished building target: Env_Monitor.elf
- 
 arm-none-eabi-size  Env_Monitor.elf 
-arm-none-eabi-objdump -h -S Env_Monitor.elf  > "Env_Monitor.list"
-arm-none-eabi-objcopy  -O ihex Env_Monitor.elf  "Env_Monitor.hex"
    text	   data	    bss	    dec	    hex	filename
   46296	    488	   2240	  49024	   bf80	Env_Monitor.elf
 Finished building: default.size.stdout
  
-Finished building: Env_Monitor.hex
- 
-Finished building: Env_Monitor.list
- 
 
-15:23:46 Build Finished. 0 errors, 2 warnings. (took 1s.558ms)
+19:04:44 Build Finished. 0 errors, 0 warnings. (took 190ms)
 
