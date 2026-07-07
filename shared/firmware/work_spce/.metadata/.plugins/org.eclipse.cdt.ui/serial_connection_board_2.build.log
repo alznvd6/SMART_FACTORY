@@ -1,0 +1,10 @@
+12:02:42 **** Incremental Build of configuration Debug for project serial_connection_board_2 ****
+make -j16 all 
+arm-none-eabi-size  serial_connection_board_2.elf 
+   text	   data	    bss	    dec	    hex	filename
+   8668	     92	   2028	  10788	   2a24	serial_connection_board_2.elf
+Finished building: default.size.stdout
+ 
+
+12:02:42 Build Finished. 0 errors, 0 warnings. (took 189ms)
+
