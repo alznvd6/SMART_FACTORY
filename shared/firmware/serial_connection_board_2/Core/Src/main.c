@@ -44,8 +44,10 @@ UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
 
-uint32_t receivedAdcValue = 0;
-char displayBuffer[50];
+uint8_t rxByte;
+char rxBuffer[50];
+uint8_t rxIndex = 0;
+volatile uint8_t stringComplete = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -92,6 +94,9 @@ int main(void)
   MX_GPIO_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
+  HAL_NVIC_SetPriority(USART1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(USART1_IRQn);
+  HAL_UART_Receive_IT(&huart1, &rxByte, 1);
 
   /* USER CODE END 2 */
 
@@ -100,13 +105,17 @@ int main(void)
   while (1)
   {
 
-
-
-	  if (HAL_UART_Receive(&huart1, (uint8_t*)&receivedAdcValue, 4, HAL_MAX_DELAY) == HAL_OK)
+	  if (stringComplete == 1)
 	        {
-	            // Board 2 formats the clean string for the terminal
-	            int len = sprintf(displayBuffer, "ADC = %lu\r\n", receivedAdcValue);
-	            HAL_UART_Transmit(&huart1, (uint8_t*)displayBuffer, len, HAL_MAX_DELAY);
+	            // ارسال کل بافر دریافت شده به ترمینال مجازی
+	            HAL_UART_Transmit(&huart1, (uint8_t*)rxBuffer, strlen(rxBuffer), HAL_MAX_DELAY);
+
+	            // ریسیت کردن متغیرها برای پکت بعدی
+	            rxIndex = 0;
+	            stringComplete = 0;
+
+	            // فعال‌سازی مجدد اینتراپت برای شروع خط جدید
+	            HAL_UART_Receive_IT(&huart1, &rxByte, 1);
 	        }
 
 
@@ -169,7 +178,7 @@ static void MX_USART1_UART_Init(void)
 
   /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200;
+  huart1.Init.BaudRate = 9600;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
@@ -206,7 +215,32 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void USART1_IRQHandler(void)
+{
+    HAL_UART_IRQHandler(&huart1);
+}
 
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    if (huart->Instance == USART1)
+    {
+        // ذخیره تمامی کاراکترها بدون فیلتر کردن
+        rxBuffer[rxIndex++] = (char)rxByte;
+
+        // اگر به کاراکتر انتهای خط (\n) رسیدیم یا بافر پر شد
+        if (rxByte == '\n' || rxIndex >= sizeof(rxBuffer) - 1)
+        {
+            rxBuffer[rxIndex] = '\0'; // انتهای رشته را می‌بندیم
+            stringComplete = 1;       // به حلقه اصلی اعلام می‌کنیم که رشته آماده است
+        }
+        else
+        {
+            // اگر هنوز خط تمام نشده، اینتراپت را برای کاراکتر بعدی فعال نگه می‌داریم
+            HAL_UART_Receive_IT(&huart1, &rxByte, 1);
+        }
+    }
+}
 /* USER CODE END 4 */
 
 /**
