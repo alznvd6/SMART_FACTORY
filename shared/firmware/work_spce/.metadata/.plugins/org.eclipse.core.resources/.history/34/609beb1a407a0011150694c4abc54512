@@ -1,0 +1,116 @@
+#include "main.h"
+#include <stdio.h>
+#include <string.h>
+
+ADC_HandleTypeDef hadc1;
+UART_HandleTypeDef huart1;
+
+uint32_t adcValue = 0;
+uint32_t lastDisplayTick = 0;
+
+uint8_t rxByte;
+char rxBuffer[50];
+uint8_t rxIndex = 0;
+char messageFromBoard2[50] = "None";
+
+void SystemClock_Config(void);
+static void MX_GPIO_Init(void);
+static void MX_ADC1_Init(void);
+static void MX_USART1_UART_Init(void);
+
+int main(void)
+{
+  HAL_Init();
+  SystemClock_Config();
+  MX_GPIO_Init();
+  MX_ADC1_Init();
+  MX_USART1_UART_Init();
+
+  // فعال‌سازی وقفه دریافت از بورد ۲
+  HAL_UART_Receive_IT(&huart1, &rxByte, 1);
+
+  while (1)
+  {
+      // هر 500 میلی‌ثانیه مقدار ADC را می‌خواند و به بورد ۲ می‌فرستد
+      if (HAL_GetTick() - lastDisplayTick >= 500)
+      {
+          lastDisplayTick = HAL_GetTick();
+
+          HAL_ADC_Start(&hadc1);
+          HAL_ADC_PollForConversion(&hadc1, 100);
+          adcValue = HAL_ADC_GetValue(&hadc1);
+
+          char adcPacket[20];
+          snprintf(adcPacket, sizeof(adcPacket), "ADC=%lu\n", adcValue);
+          HAL_UART_Transmit(&huart1, (uint8_t*)adcPacket, strlen(adcPacket), 100);
+      }
+  }
+}
+
+// کالبک دریافت دیتای چت/دستورات فرستاده شده از بورد ۲
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    if (huart->Instance == USART1)
+    {
+        if (rxByte == '\r' || rxByte == '\n')
+        {
+            if (rxIndex > 0)
+            {
+                rxBuffer[rxIndex] = '\0';
+                if (rxBuffer[0] == '#')
+                {
+                    strncpy(messageFromBoard2, &rxBuffer[1], sizeof(messageFromBoard2) - 1);
+                }
+                rxIndex = 0;
+                memset(rxBuffer, 0, sizeof(rxBuffer));
+            }
+        }
+        else if (rxIndex < sizeof(rxBuffer) - 1)
+        {
+            rxBuffer[rxIndex++] = (char)rxByte;
+        }
+        HAL_UART_Receive_IT(&huart1, &rxByte, 1);
+    }
+}
+
+/* توابع تنظیمات سخت‌افزاری بورد ۱ */
+void SystemClock_Config(void) {
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+  PeriphCLKInitTypeDef PeriphClkInit = {0};
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  HAL_RCC_OscConfig(&RCC_OscInitStruct);
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK|RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+  HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC;
+  PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV2;
+  HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit);
+}
+static void MX_ADC1_Init(void) {
+  ADC_ChannelConfTypeDef sConfig = {0};
+  hadc1.Instance = ADC1;
+  hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
+  hadc1.Init.ContinuousConvMode = ENABLE;
+  hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc1.Init.NbrOfConversion = 1;
+  HAL_ADC_Init(&hadc1);
+  sConfig.Channel = ADC_CHANNEL_0;
+  sConfig.Rank = ADC_REGULAR_RANK_1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+  HAL_ADC_ConfigChannel(&hadc1, &sConfig);
+}
+static void MX_USART1_UART_Init(void) {
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 9600;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  HAL_UART_Init(&huart1);
+}
+static void MX_GPIO_Init(void) { __HAL_RCC_GPIOA_CLK_ENABLE(); }
+void Error_Handler(void) { __disable_irq(); while (1); }

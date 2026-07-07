@@ -2401,3 +2401,30 @@ Command-line arguments:  -os win32 -ws win32 -arch x86_64 E:\SMART_FACTORY\share
 
 !ENTRY org.eclipse.cdt.core 1 0 2026-07-07 14:17:34.640
 !MESSAGE Indexed 'serial_connection_board_2' (18 sources, 109 headers) in 1.24 sec: 8,012 declarations; 31,346 references; 2 unresolved inclusions; 36 syntax errors; 188 unresolved names (0.48%)
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-07-07 18:54:23.295
+!MESSAGE Indexed 'serial_connection_between_boards' (20 sources, 112 headers) in 1.47 sec: 8,511 declarations; 37,353 references; 2 unresolved inclusions; 36 syntax errors; 188 unresolved names (0.41%)
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-07-07 19:07:16.177
+!MESSAGE Indexed 'serial_connection_board_2' (18 sources, 109 headers) in 1.32 sec: 8,022 declarations; 31,401 references; 2 unresolved inclusions; 36 syntax errors; 188 unresolved names (0.47%)
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-07-07 19:11:36.540
+!MESSAGE Indexed 'serial_connection_board_2' (18 sources, 109 headers) in 0.816 sec: 8,016 declarations; 31,367 references; 2 unresolved inclusions; 36 syntax errors; 188 unresolved names (0.48%)
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-07-07 19:15:11.102
+!MESSAGE Indexed 'serial_connection_board_2' (18 sources, 109 headers) in 1.24 sec: 8,028 declarations; 31,546 references; 2 unresolved inclusions; 36 syntax errors; 188 unresolved names (0.47%)
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-07-07 19:15:39.825
+!MESSAGE Indexed 'serial_connection_between_boards' (20 sources, 112 headers) in 1.32 sec: 8,515 declarations; 37,417 references; 2 unresolved inclusions; 36 syntax errors; 188 unresolved names (0.41%)
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-07-07 19:17:37.924
+!MESSAGE Indexed 'serial_connection_between_boards' (20 sources, 112 headers) in 1.02 sec: 8,520 declarations; 37,426 references; 2 unresolved inclusions; 36 syntax errors; 188 unresolved names (0.41%)
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-07-07 19:18:00.305
+!MESSAGE Indexed 'serial_connection_board_2' (18 sources, 109 headers) in 1.24 sec: 8,021 declarations; 31,376 references; 2 unresolved inclusions; 36 syntax errors; 188 unresolved names (0.47%)
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-07-07 23:40:43.229
+!MESSAGE Indexed 'serial_connection_board_2' (18 sources, 106 headers) in 1.41 sec: 7,819 declarations; 31,345 references; 2 unresolved inclusions; 36 syntax errors; 188 unresolved names (0.48%)
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-07-07 23:46:34.991
+!MESSAGE Indexed 'serial_connection_board_2' (18 sources, 106 headers) in 1.14 sec: 7,807 declarations; 31,166 references; 2 unresolved inclusions; 36 syntax errors; 188 unresolved names (0.48%)
