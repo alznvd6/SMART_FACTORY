@@ -1,66 +1,62 @@
-14:24:32 **** Incremental Build of configuration Debug for project serial_connection_between_boards ****
+16:53:07 **** Incremental Build of configuration Debug for project serial_connection_between_boards ****
 make -j16 all 
 arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m3 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F103xB -c -I../Core/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/main.o"
 ../Core/Src/main.c: In function 'printLocalConsole':
-../Core/Src/main.c:61:5: warning: implicit declaration of function 'snprintf' [-Wimplicit-function-declaration]
-   61 |     snprintf(uiBuffer, sizeof(uiBuffer),
+../Core/Src/main.c:65:5: warning: implicit declaration of function 'snprintf' [-Wimplicit-function-declaration]
+   65 |     snprintf(uiBuffer, sizeof(uiBuffer),
       |     ^~~~~~~~
 ../Core/Src/main.c:11:1: note: include '<stdio.h>' or provide a declaration of 'snprintf'
    10 | #include "main.h"
   +++ |+#include <stdio.h>
    11 | 
-../Core/Src/main.c:61:5: warning: incompatible implicit declaration of built-in function 'snprintf' [-Wbuiltin-declaration-mismatch]
-   61 |     snprintf(uiBuffer, sizeof(uiBuffer),
+../Core/Src/main.c:65:5: warning: incompatible implicit declaration of built-in function 'snprintf' [-Wbuiltin-declaration-mismatch]
+   65 |     snprintf(uiBuffer, sizeof(uiBuffer),
       |     ^~~~~~~~
-../Core/Src/main.c:61:5: note: include '<stdio.h>' or provide a declaration of 'snprintf'
-../Core/Src/main.c:68:52: warning: implicit declaration of function 'strlen' [-Wimplicit-function-declaration]
-   68 |     HAL_UART_Transmit(&huart1, (uint8_t*)uiBuffer, strlen(uiBuffer), 100);
+../Core/Src/main.c:65:5: note: include '<stdio.h>' or provide a declaration of 'snprintf'
+../Core/Src/main.c:73:52: warning: implicit declaration of function 'strlen' [-Wimplicit-function-declaration]
+   73 |     HAL_UART_Transmit(&huart1, (uint8_t*)uiBuffer, strlen(uiBuffer), 100);
       |                                                    ^~~~~~
 ../Core/Src/main.c:11:1: note: include '<string.h>' or provide a declaration of 'strlen'
    10 | #include "main.h"
   +++ |+#include <string.h>
    11 | 
-../Core/Src/main.c:68:52: warning: incompatible implicit declaration of built-in function 'strlen' [-Wbuiltin-declaration-mismatch]
-   68 |     HAL_UART_Transmit(&huart1, (uint8_t*)uiBuffer, strlen(uiBuffer), 100);
+../Core/Src/main.c:73:52: warning: incompatible implicit declaration of built-in function 'strlen' [-Wbuiltin-declaration-mismatch]
+   73 |     HAL_UART_Transmit(&huart1, (uint8_t*)uiBuffer, strlen(uiBuffer), 100);
       |                                                    ^~~~~~
-../Core/Src/main.c:68:52: note: include '<string.h>' or provide a declaration of 'strlen'
+../Core/Src/main.c:73:52: note: include '<string.h>' or provide a declaration of 'strlen'
 ../Core/Src/main.c: In function 'HAL_UART_RxCpltCallback':
-../Core/Src/main.c:82:21: warning: implicit declaration of function 'strncpy' [-Wimplicit-function-declaration]
-   82 |                     strncpy(messageFromBoard2, &rxBuffer[1], sizeof(messageFromBoard2) - 1);
-      |                     ^~~~~~~
-../Core/Src/main.c:82:21: note: include '<string.h>' or provide a declaration of 'strncpy'
-../Core/Src/main.c:82:21: warning: incompatible implicit declaration of built-in function 'strncpy' [-Wbuiltin-declaration-mismatch]
-../Core/Src/main.c:82:21: note: include '<string.h>' or provide a declaration of 'strncpy'
-../Core/Src/main.c:84:21: warning: implicit declaration of function 'memset' [-Wimplicit-function-declaration]
-   84 |                     memset(rxBuffer, 0, sizeof(rxBuffer));
+../Core/Src/main.c:88:21: warning: implicit declaration of function 'strcmp' [-Wimplicit-function-declaration]
+   88 |                 if (strcmp(rxBuffer, "#CMD_LED_ON") == 0)
       |                     ^~~~~~
-../Core/Src/main.c:84:21: note: include '<string.h>' or provide a declaration of 'memset'
-../Core/Src/main.c:84:21: warning: incompatible implicit declaration of built-in function 'memset' [-Wbuiltin-declaration-mismatch]
-../Core/Src/main.c:84:21: note: include '<string.h>' or provide a declaration of 'memset'
+../Core/Src/main.c:88:21: note: include '<string.h>' or provide a declaration of 'strcmp'
+../Core/Src/main.c:101:21: warning: implicit declaration of function 'strncpy' [-Wimplicit-function-declaration]
+  101 |                     strncpy(messageFromBoard2, &rxBuffer[1], sizeof(messageFromBoard2) - 1);
+      |                     ^~~~~~~
+../Core/Src/main.c:101:21: note: include '<string.h>' or provide a declaration of 'strncpy'
+../Core/Src/main.c:101:21: warning: incompatible implicit declaration of built-in function 'strncpy' [-Wbuiltin-declaration-mismatch]
+../Core/Src/main.c:101:21: note: include '<string.h>' or provide a declaration of 'strncpy'
+../Core/Src/main.c:106:17: warning: implicit declaration of function 'memset' [-Wimplicit-function-declaration]
+  106 |                 memset(rxBuffer, 0, sizeof(rxBuffer));
+      |                 ^~~~~~
+../Core/Src/main.c:106:17: note: include '<string.h>' or provide a declaration of 'memset'
+../Core/Src/main.c:106:17: warning: incompatible implicit declaration of built-in function 'memset' [-Wbuiltin-declaration-mismatch]
+../Core/Src/main.c:106:17: note: include '<string.h>' or provide a declaration of 'memset'
 ../Core/Src/main.c: In function 'main':
-../Core/Src/main.c:136:53: warning: incompatible implicit declaration of built-in function 'strlen' [-Wbuiltin-declaration-mismatch]
-  136 |   HAL_UART_Transmit(&huart1, (uint8_t*)clearScreen, strlen(clearScreen), HAL_MAX_DELAY);
+../Core/Src/main.c:153:53: warning: incompatible implicit declaration of built-in function 'strlen' [-Wbuiltin-declaration-mismatch]
+  153 |   HAL_UART_Transmit(&huart1, (uint8_t*)clearScreen, strlen(clearScreen), HAL_MAX_DELAY);
       |                                                     ^~~~~~
-../Core/Src/main.c:136:53: note: include '<string.h>' or provide a declaration of 'strlen'
-../Core/Src/main.c:155:9: warning: incompatible implicit declaration of built-in function 'snprintf' [-Wbuiltin-declaration-mismatch]
-  155 |         snprintf(adcPacket, sizeof(adcPacket), "ADC=%lu\n", adcValue);
-      |         ^~~~~~~~
-../Core/Src/main.c:155:9: note: include '<stdio.h>' or provide a declaration of 'snprintf'
-../Core/Src/main.c:162:9: warning: incompatible implicit declaration of built-in function 'snprintf' [-Wbuiltin-declaration-mismatch]
-  162 |         snprintf(txPacket, sizeof(txPacket), "@%s\n", rxBuffer);
-      |         ^~~~~~~~
-../Core/Src/main.c:162:9: note: include '<stdio.h>' or provide a declaration of 'snprintf'
-../Core/Src/main.c:165:9: warning: incompatible implicit declaration of built-in function 'memset' [-Wbuiltin-declaration-mismatch]
-  165 |         memset(rxBuffer, 0, sizeof(rxBuffer));
-      |         ^~~~~~
-../Core/Src/main.c:165:9: note: include '<string.h>' or provide a declaration of 'memset'
+../Core/Src/main.c:153:53: note: include '<string.h>' or provide a declaration of 'strlen'
+../Core/Src/main.c:178:11: warning: incompatible implicit declaration of built-in function 'snprintf' [-Wbuiltin-declaration-mismatch]
+  178 |           snprintf(adcPacket, sizeof(adcPacket), "ADC=%lu\n", adcValue);
+      |           ^~~~~~~~
+../Core/Src/main.c:178:11: note: include '<stdio.h>' or provide a declaration of 'snprintf'
 arm-none-eabi-gcc -o "serial_connection_between_boards.elf" @"objects.list"   -mcpu=cortex-m3 -T"E:\SMART_FACTORY\shared\firmware\serial_connection_between_boards\STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="serial_connection_between_boards.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 Finished building target: serial_connection_between_boards.elf
  
 arm-none-eabi-size  serial_connection_between_boards.elf 
 arm-none-eabi-objdump -h -S serial_connection_between_boards.elf  > "serial_connection_between_boards.list"
    text	   data	    bss	    dec	    hex	filename
-  15004	    144	   2088	  17236	   4354	serial_connection_between_boards.elf
+  15160	    144	   2088	  17392	   43f0	serial_connection_between_boards.elf
 arm-none-eabi-objcopy  -O ihex serial_connection_between_boards.elf  "serial_connection_between_boards.hex"
 Finished building: default.size.stdout
  
@@ -69,5 +65,5 @@ Finished building: serial_connection_between_boards.hex
 Finished building: serial_connection_between_boards.list
  
 
-14:24:33 Build Finished. 0 errors, 12 warnings. (took 1s.100ms)
+16:53:08 Build Finished. 0 errors, 11 warnings. (took 604ms)
 

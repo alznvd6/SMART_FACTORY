@@ -57,36 +57,18 @@ void printLocalConsole(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-//void printLocalConsole(void)
-//{
-//    char uiBuffer[250];
-//    snprintf(uiBuffer, sizeof(uiBuffer),
-//             "\033[H" // Move cursor to top left instead of raw scrolling newlines
-//             "--- BOARD #2 (CONTROLLER) ---\r\n"
-//             "Remote ADC (Board 1): %s\r\n"
-//             "From Board 1 Message: %s\r\n"
-//             "Your Input Buffer   : > %s \033[K\r\n", // Clear line to the right
-//             sharedAdcValue, messageFromBoard1, rxBuffer);
-//
-//    // CRITICAL FIX: Direct terminal rendering outputs to USART2!
-//    HAL_UART_Transmit(&huart2, (uint8_t*)uiBuffer, strlen(uiBuffer), 100);
-//}
 void printLocalConsole(void)
 {
     char uiBuffer[250];
-
-    // Using simple newlines (\r\n) keeps the Proteus window printing cleanly
-    // without scrambling text fragments over each other.
     snprintf(uiBuffer, sizeof(uiBuffer),
-             "\r\n=================================\r\n"
-             "   BOARD #2 (CONTROLLER) LOG\r\n"
-             "=================================\r\n"
-             " * Remote ADC (Board 1) : %s\r\n"
-             " * Message from Board 1 : %s\r\n"
-             " * Last Typed Command   : [%s]\r\n"
-             "=================================\r\n",
+             "\033[H" // Move cursor to top left instead of raw scrolling newlines
+             "--- BOARD #2 (CONTROLLER) ---\r\n"
+             "Remote ADC (Board 1): %s\r\n"
+             "From Board 1 Message: %s\r\n"
+             "Your Input Buffer   : > %s \033[K\r\n", // Clear line to the right
              sharedAdcValue, messageFromBoard1, rxBuffer);
 
+    // CRITICAL FIX: Direct terminal rendering outputs to USART2!
     HAL_UART_Transmit(&huart2, (uint8_t*)uiBuffer, strlen(uiBuffer), 100);
 }
 
@@ -193,7 +175,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-      if (HAL_GetTick() - lastDisplayTick >= 1000)
+      if (HAL_GetTick() - lastDisplayTick >= 500)
       {
           lastDisplayTick = HAL_GetTick();
           printLocalConsole();

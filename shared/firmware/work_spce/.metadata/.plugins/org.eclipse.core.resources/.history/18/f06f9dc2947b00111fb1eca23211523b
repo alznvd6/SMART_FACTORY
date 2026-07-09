@@ -40,8 +40,7 @@ uint32_t lastDisplayTick = 0;
 uint8_t rxByte;
 char rxBuffer[50];
 uint8_t rxIndex = 0;
-
-// Holds text messages sent from Board 2
+volatile uint8_t lineReadyFromTerminal = 0;
 char messageFromBoard2[50] = "None";
 /* USER CODE END PV */
 
@@ -58,17 +57,13 @@ void printLocalConsole(void);
 /* USER CODE BEGIN 0 */
 void printLocalConsole(void)
 {
-    char uiBuffer[250];
-    // Check actual pin state to show accurate LED status on the display
-    char* ledStatus = (HAL_GPIO_ReadPin(ACTUATOR_LED_GPIO_Port, ACTUATOR_LED_Pin) == GPIO_PIN_RESET) ? "ON" : "OFF";
-
+    char uiBuffer[200];
     snprintf(uiBuffer, sizeof(uiBuffer),
-             "\033[H" // Move cursor to top-left instead of full clear to prevent flickering
-             "--- BOARD #1 (DISPLAY ONLY) ---\r\n"
-             "Local Potentiometer (ADC): %lu\r\n"
-             "Actuator LED Status      : %s\r\n"
-             "Message from Board 2     : %s\r\n",
-             adcValue, ledStatus, messageFromBoard2);
+             "\r\n--- BOARD #1 ---\r\n"
+             "Pot Value: %lu\r\n"
+             "From Board 2: %s\r\n"
+             "Your msg: > %s\r\n",
+             adcValue, messageFromBoard2, rxBuffer);
 
     HAL_UART_Transmit(&huart1, (uint8_t*)uiBuffer, strlen(uiBuffer), 100);
 }
@@ -77,39 +72,27 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
     if (huart->Instance == USART1)
     {
-        // Board 1 receives raw data packets from Board 2 over the wire
         if (rxByte == '\r' || rxByte == '\n')
         {
             if (rxIndex > 0)
             {
                 rxBuffer[rxIndex] = '\0';
-
-                // Intercept Command Packets from Board 2
-                if (strcmp(rxBuffer, "#CMD_LED_ON") == 0)
-                {
-                    HAL_GPIO_WritePin(ACTUATOR_LED_GPIO_Port, ACTUATOR_LED_Pin, GPIO_PIN_RESET); // Turn ON (Active Low)
-                    printLocalConsole();
-                }
-                else if (strcmp(rxBuffer, "#CMD_LED_OFF") == 0)
-                {
-                    HAL_GPIO_WritePin(ACTUATOR_LED_GPIO_Port, ACTUATOR_LED_Pin, GPIO_PIN_SET);  // Turn OFF
-                    printLocalConsole();
-                }
-                // Intercept Regular Message Packets
-                else if (rxBuffer[0] == '#')
+                if (rxBuffer[0] == '#')
                 {
                     strncpy(messageFromBoard2, &rxBuffer[1], sizeof(messageFromBoard2) - 1);
+                    rxIndex = 0;
+                    memset(rxBuffer, 0, sizeof(rxBuffer));
                     printLocalConsole();
                 }
-
-                rxIndex = 0;
-                memset(rxBuffer, 0, sizeof(rxBuffer));
+                else
+                {
+                    lineReadyFromTerminal = 1;
+                }
             }
         }
         else if (rxIndex < sizeof(rxBuffer) - 1)
         {
-            // CRITICAL: Removed the HAL_UART_Transmit echo here!
-            // Board 1 terminal will no longer show user typing.
+            HAL_UART_Transmit(&huart1, &rxByte, 1, 10);
             rxBuffer[rxIndex++] = (char)rxByte;
         }
         HAL_UART_Receive_IT(&huart1, &rxByte, 1);
@@ -156,29 +139,35 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  /* USER CODE BEGIN WHILE */
-    while (1)
+  while (1)
+  {
+    if (HAL_GetTick() - lastDisplayTick >= 500)
     {
-      if (HAL_GetTick() - lastDisplayTick >= 1000)
-      {
-          lastDisplayTick = HAL_GetTick();
+        lastDisplayTick = HAL_GetTick();
+        HAL_ADC_Start(&hadc1);
+        if (HAL_ADC_PollForConversion(&hadc1, 100) == HAL_OK)
+        {
+            adcValue = HAL_ADC_GetValue(&hadc1);
+        }
+        printLocalConsole();
 
-          // Read ADC Value
-          HAL_ADC_Start(&hadc1);
-          if (HAL_ADC_PollForConversion(&hadc1, 100) == HAL_OK)
-          {
-              adcValue = HAL_ADC_GetValue(&hadc1);
-          }
+        char adcPacket[20];
+        snprintf(adcPacket, sizeof(adcPacket), "ADC=%lu\n", adcValue);
+        HAL_UART_Transmit(&huart1, (uint8_t*)adcPacket, strlen(adcPacket), 100);
+    }
 
-          // Refresh local Terminal 1 monitor display
-          printLocalConsole();
+    if (lineReadyFromTerminal == 1)
+    {
+        char txPacket[65];
+        snprintf(txPacket, sizeof(txPacket), "@%s\n", rxBuffer);
+        HAL_UART_Transmit(&huart1, (uint8_t*)txPacket, strlen(txPacket), 100);
 
-          // Stream the numerical data packet to Board 2 over the link
-          char adcPacket[20];
-          snprintf(adcPacket, sizeof(adcPacket), "ADC=%lu\n", adcValue);
-          HAL_UART_Transmit(&huart1, (uint8_t*)adcPacket, strlen(adcPacket), 100);
-      }
-      /* USER CODE END WHILE */
+        memset(rxBuffer, 0, sizeof(rxBuffer));
+        rxIndex = 0;
+        lineReadyFromTerminal = 0;
+        printLocalConsole();
+    }
+    /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
   }

@@ -159,7 +159,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
     while (1)
     {
-      if (HAL_GetTick() - lastDisplayTick >= 1000)
+      if (HAL_GetTick() - lastDisplayTick >= 500)
       {
           lastDisplayTick = HAL_GetTick();
 

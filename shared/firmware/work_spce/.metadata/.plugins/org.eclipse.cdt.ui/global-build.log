@@ -1,13 +1,42 @@
-14:26:44 **** Incremental Build of configuration Debug for project serial_connection_board_2 ****
+16:53:12 **** Incremental Build of configuration Debug for project serial_connection_board_2 ****
 make -j16 all 
 arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m3 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F103xB -c -I../Core/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'printLocalConsole':
+../Core/Src/main.c:81:14: warning: '
+ * Last Typed Command   : .' directive output may be truncated writing 29 bytes into a region of size between 26 and 94 [-Wformat-truncation=]
+   81 |              "\r\n=================================\r\n"
+      |              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../Core/Src/main.c:85:43: note: format string is defined here
+   85 |              " * Message from Board 1 : %s\r\n"
+      |                                           ^~~~~
+   86 |              " * Last Typed Command   : [%s]\r\n"
+      |              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
+../Core/Src/main.c:80:5: note: 'snprintf' output between 224 and 341 bytes into a destination of size 250
+   80 |     snprintf(uiBuffer, sizeof(uiBuffer),
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   81 |              "\r\n=================================\r\n"
+      |              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   82 |              "   BOARD #2 (CONTROLLER) LOG\r\n"
+      |              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   83 |              "=================================\r\n"
+      |              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   84 |              " * Remote ADC (Board 1) : %s\r\n"
+      |              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   85 |              " * Message from Board 1 : %s\r\n"
+      |              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   86 |              " * Last Typed Command   : [%s]\r\n"
+      |              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   87 |              "=================================\r\n",
+      |              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   88 |              sharedAdcValue, messageFromBoard1, rxBuffer);
+      |              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 arm-none-eabi-gcc -o "serial_connection_board_2.elf" @"objects.list"   -mcpu=cortex-m3 -T"E:\SMART_FACTORY\shared\firmware\serial_connection_board_2\STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="serial_connection_board_2.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 Finished building target: serial_connection_board_2.elf
  
 arm-none-eabi-size  serial_connection_board_2.elf 
 arm-none-eabi-objdump -h -S serial_connection_board_2.elf  > "serial_connection_board_2.list"
    text	   data	    bss	    dec	    hex	filename
-  11720	    164	   2036	  13920	   3660	serial_connection_board_2.elf
+  12372	    164	   2164	  14700	   396c	serial_connection_board_2.elf
 arm-none-eabi-objcopy  -O ihex serial_connection_board_2.elf  "serial_connection_board_2.hex"
 Finished building: default.size.stdout
  
