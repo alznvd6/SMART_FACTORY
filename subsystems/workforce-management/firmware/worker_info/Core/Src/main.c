@@ -4,16 +4,6 @@
   * @file           : main.c
   * @brief          : Main program body
   ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2026 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
@@ -28,56 +18,55 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-/* USER CODE BEGIN PTD */
 typedef enum {
-    STATE_IDLE,
-    STATE_WAIT_FOR_FINGERPRINT,
-    STATE_PROCESS_CHECKIN,
-    STATE_RESET_WAIT
+    STATE_MAIN_MENU,
+    STATE_WAIT_MAIN_CHOICE,
+    
+    STATE_WORKER_LOGIN,
+    STATE_WAIT_WORKER_ID,
+    STATE_WAIT_WORKER_MENU_ACTION,
+    
+    STATE_MANAGER_USER_PROMPT,
+    STATE_MANAGER_WAIT_USER,
+    STATE_MANAGER_PASS_PROMPT,
+    STATE_MANAGER_WAIT_PASS,
+    STATE_WAIT_MANAGER_MENU_ACTION
 } SystemState;
 
-typedef struct {
-    int real_id;
-    char name[30];
-    char birth_date[15]; 
-    int attendance_count;
-} Worker;
+SystemState currentState = STATE_MAIN_MENU;
 
-Worker workers[10] = {
-    {1001, "Ali Rezaei", "1992-05-12", 25}, 
-    {1002, "Mohammad Karimi", "1995-08-23", 27},
-    {1003, "Sara Ahmadi", "1998-11-02", 26}, 
-    {1004, "Reza Hosseini", "1990-01-15", 24},
-    {1005, "Mina Moradi", "1996-04-30", 28}, 
-    {1006, "Hamid Nouri", "1993-09-18", 29},
-    {1007, "Zahra Ghasemi", "1997-07-25", 25}, 
-    {1008, "Omid Safari", "1994-12-05", 26},
-    {1009, "Neda Jafari", "1999-02-14", 27}, 
-    {1010, "Farid Malekani", "1993-03-21", 27} 
-};
-
-SystemState currentState = STATE_IDLE;
-int selected_worker_index = -1;
-char rx_buffer[10];
+char rx_buffer[50];
 uint8_t rx_index = 0;
 uint8_t rx_data;
+volatile uint8_t input_ready = 0;
+
+const char admin_user[] = "admin";
+const char admin_pass[] = "1234";
+char entered_user[20];
+char entered_pass[20];
+
+// ???? ???? ??? ???? ?????????? ???? Enter
+void trim_string(char *str) {
+    int len = strlen(str);
+    while (len > 0 && (str[len-1] == '\r' || str[len-1] == '\n')) {
+        str[len-1] = '\0';
+        len--;
+    }
+}
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -85,12 +74,10 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
 /* USER CODE END 0 */
 
 /**
@@ -101,7 +88,6 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -124,59 +110,202 @@ int main(void)
   MX_GPIO_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-		HAL_UART_Receive_IT(&huart1, &rx_data, 1);
-		printf("\r\n=== SMART FACTORY MANAGEMENT SYSTEM ===\r\n");
-		printf("Please enter Worker Local ID (1-10): ");
+  HAL_UART_Receive_IT(&huart1, &rx_data, 1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-				switch (currentState) {
-    case STATE_IDLE:
-        if (selected_worker_index != -1) {
-            if (selected_worker_index >= 1 && selected_worker_index <= 10) {
-                printf("\r\nWorker Selected: %s\r\n", workers[selected_worker_index - 1].name);
-                printf("Action: Toggle Fingerprint Logic State (PA0) to 1 to SCAN...\r\n");
-                currentState = STATE_WAIT_FOR_FINGERPRINT;
-            } else {
-                printf("\r\nInvalid ID! Try again (1-10): ");
-                selected_worker_index = -1;
+    switch (currentState) {
+        
+        case STATE_MAIN_MENU:
+            printf("\r\n\r\n=== SMART FACTORY CENTRAL TERMINAL ===\r\n");
+            printf("1. Worker Login (Fingerprint ID)\r\n");
+            printf("2. Foreman/Manager Login (Credentials)\r\n");
+            printf("3. EMERGENCY (SOS)\r\n");
+            printf("Select an option (1, 2, or 3): ");
+            input_ready = 0;
+            rx_index = 0;
+            currentState = STATE_WAIT_MAIN_CHOICE;
+            break;
+
+        case STATE_WAIT_MAIN_CHOICE:
+            if (input_ready) {
+                input_ready = 0;
+                trim_string(rx_buffer); 
+                
+                if (strcmp(rx_buffer, "1") == 0) {
+                    currentState = STATE_WORKER_LOGIN;
+                } else if (strcmp(rx_buffer, "2") == 0) {
+                    currentState = STATE_MANAGER_USER_PROMPT;
+                } else if (strcmp(rx_buffer, "3") == 0) {
+                    printf("\r\n\r\n!!! EMERGENCY PROTOCOL INITIATED !!!\r\n");
+                    printf("1. Fire Alarm\r\n2. Medical Emergency\r\n3. Hazardous Leak\r\n");
+                    printf("Select Emergency Type: ");
+                    currentState = STATE_MAIN_MENU; 
+                } else {
+                    printf("\r\nInvalid choice. Try again: ");
+                    rx_index = 0;
+                }
             }
-        }
-        break;
+            break;
 
-    case STATE_WAIT_FOR_FINGERPRINT:
-        if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET) {
-            currentState = STATE_PROCESS_CHECKIN;
-        }
-        break;
+        // ---------------- WORKER SECTION ----------------
+        case STATE_WORKER_LOGIN:
+            printf("\r\n\r\n[WORKER LOGIN] Please enter Fingerprint ID: ");
+            input_ready = 0;
+            rx_index = 0;
+            currentState = STATE_WAIT_WORKER_ID;
+            break;
+            
+        case STATE_WAIT_WORKER_ID:
+            if (input_ready) {
+                input_ready = 0;
+                trim_string(rx_buffer);
+                strcpy(entered_user, rx_buffer); 
 
-    case STATE_PROCESS_CHECKIN:
-        workers[selected_worker_index - 1].attendance_count++;
-        printf("\r\n[ACCESS GRANTED]\r\n");
-        printf("Employee: %s\r\n", workers[selected_worker_index - 1].name);
-        printf("Attendance updated for this month: %d/30\r\n", workers[selected_worker_index - 1].attendance_count);
-        printf("----------------------------------------\r\n");
-        printf("Action: Toggle Fingerprint Logic State back to 0 to RESET.\r\n");
-        currentState = STATE_RESET_WAIT;
-        break;
+                printf("\r\n========================================");
+                printf("\r\n[ACCESS GRANTED] Welcome Worker ID: %s", rx_buffer);
+                printf("\r\n========================================\r\n");
+                printf("--- WORKER MENU ---\r\n");
+                printf("1. Check-in\r\n2. Request Leave (Vacation)\r\n3. Send Letter\r\n4. Logout\r\n");
+                printf("Select: ");
+                
+                currentState = STATE_WAIT_WORKER_MENU_ACTION;
+            }
+            break;
 
-    case STATE_RESET_WAIT:
-        if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_RESET) {
-            selected_worker_index = -1;
-            printf("\r\nReady for next scan.\r\n");
-            printf("Please enter Worker Local ID (1-10): ");
-            currentState = STATE_IDLE;
-        }
-        break;
-}
-		HAL_Delay(100);
+        case STATE_WAIT_WORKER_MENU_ACTION:
+            if (input_ready) {
+                input_ready = 0;
+                trim_string(rx_buffer);
+                
+                if (rx_buffer[0] == '1') {
+                    printf("CHECKIN:%s\r\n", entered_user);
+                    printf("\r\n[SUCCESS] Check-in command sent to server.\r\n");
+                } 
+                else if (rx_buffer[0] == '2') {
+                    // ????? ???? PA1 ???? ?????/?? ?????
+                    if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1) == GPIO_PIN_SET) {
+                        printf("VACATION:%s:APPROVED\r\n", entered_user);
+                        printf("\r\n[RESULT] Vacation APPROVED by Manager Panel.\r\n");
+                    } else {
+                        printf("VACATION:%s:REJECTED\r\n", entered_user);
+                        printf("\r\n[RESULT] Vacation REJECTED by Manager Panel.\r\n");
+                    }
+                }
+                else if (rx_buffer[0] == '3') {
+                    // ????? ???? PA2 ???? ????? ????
+                    if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_2) == GPIO_PIN_SET) {
+                        printf("LETTER:%s:READ\r\n", entered_user);
+                        printf("\r\n[RESULT] Letter answered (Request file will be deleted).\r\n");
+                    } else {
+                        printf("LETTER:%s:PENDING\r\n", entered_user);
+                        printf("\r\n[RESULT] Letter sent to queue (Pending).\r\n");
+                    }
+                }
+                else if (rx_buffer[0] == '4') {
+                    printf("\r\n[LOGGED OUT] Returning to Main Menu...\r\n");
+                    currentState = STATE_MAIN_MENU;
+                    break;
+                }
+                else {
+                    printf("\r\nInvalid option.\r\n");
+                }
+                
+                if (currentState == STATE_WAIT_WORKER_MENU_ACTION) {
+                    printf("\r\nSelect next option (or 4 to logout): ");
+                }
+            }
+            break;
+
+        // ---------------- MANAGER SECTION ----------------
+        case STATE_MANAGER_USER_PROMPT:
+            printf("\r\n\r\n[MANAGER LOGIN]\r\nUsername: ");
+            input_ready = 0;
+            rx_index = 0;
+            currentState = STATE_MANAGER_WAIT_USER;
+            break;
+
+        case STATE_MANAGER_WAIT_USER:
+            if (input_ready) {
+                input_ready = 0;
+                trim_string(rx_buffer);
+                strcpy(entered_user, rx_buffer);
+                currentState = STATE_MANAGER_PASS_PROMPT;
+            }
+            break;
+
+        case STATE_MANAGER_PASS_PROMPT:
+            printf("\r\nPassword: ");
+            input_ready = 0;
+            rx_index = 0;
+            currentState = STATE_MANAGER_WAIT_PASS;
+            break;
+
+        case STATE_MANAGER_WAIT_PASS:
+            if (input_ready) {
+                input_ready = 0;
+                trim_string(rx_buffer);
+                strcpy(entered_pass, rx_buffer);
+                
+                if (strcmp(entered_user, admin_user) == 0 && strcmp(entered_pass, admin_pass) == 0) {
+                    printf("\r\n========================================");
+                    printf("\r\n[ACCESS GRANTED] Welcome Foreman/Manager");
+                    printf("\r\n========================================\r\n");
+                    printf("--- MANAGER MENU ---\r\n");
+                    printf("1. Stop Production Line\r\n2. Report Failure\r\n3. Send Demand/Letter\r\n4. Register Absence\r\n5. Logout\r\n");
+                    printf("Select: ");
+                    
+                    currentState = STATE_WAIT_MANAGER_MENU_ACTION;
+                } else {
+                    printf("\r\n[ACCESS DENIED] Incorrect Username or Password.\r\n");
+                    currentState = STATE_MAIN_MENU;
+                }
+            }
+            break;
+
+        case STATE_WAIT_MANAGER_MENU_ACTION:
+            if (input_ready) {
+                input_ready = 0;
+                trim_string(rx_buffer);
+                
+                if (rx_buffer[0] == '1') {
+                    printf("MANAGER:STOP_LINE\r\n");
+                    printf("\r\n[ALARM] Production Line STOPPED command sent!\r\n");
+                }
+                else if (rx_buffer[0] == '2') {
+                    printf("MANAGER:REPORT_FAIL\r\n");
+                    printf("\r\n[SYSTEM] Failure report sent to database.\r\n");
+                }
+                else if (rx_buffer[0] == '3') {
+                    printf("MANAGER:DEMAND\r\n");
+                    printf("\r\n[SYSTEM] Demand letter sent to database.\r\n");
+                }
+                else if (rx_buffer[0] == '4') {
+                    printf("MANAGER:ABSENCE\r\n");
+                    printf("\r\n[SYSTEM] Absence record triggered.\r\n");
+                }
+                else if (rx_buffer[0] == '5') {
+                    printf("\r\n[LOGGED OUT] Returning to Main Menu...\r\n");
+                    currentState = STATE_MAIN_MENU;
+                    break;
+                }
+                else {
+                    printf("\r\nInvalid option.\r\n");
+                }
+                
+                if (currentState == STATE_WAIT_MANAGER_MENU_ACTION) {
+                    printf("\r\nSelect next option (or 5 to logout): ");
+                }
+            }
+            break;
+    }
+    HAL_Delay(50);
   }
   /* USER CODE END 3 */
 }
@@ -193,13 +322,10 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -209,12 +335,12 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
   {
     Error_Handler();
   }
@@ -236,7 +362,7 @@ static void MX_USART1_UART_Init(void)
 
   /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200;
+  huart1.Init.BaudRate = 9600;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
@@ -266,7 +392,6 @@ static void MX_GPIO_Init(void)
   /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /*Configure GPIO pin : FINGERPRINT_SENSOR_Pin */
@@ -281,7 +406,7 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-	int fputc(int ch, FILE *f) {
+int fputc(int ch, FILE *f) {
     HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, 0xFFFF);
     return ch;
 }
@@ -290,18 +415,16 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
     if (huart->Instance == USART1) {
         if (rx_data == '\r' || rx_data == '\n') {
             rx_buffer[rx_index] = '\0';
-            selected_worker_index = atoi(rx_buffer);
-            rx_index = 0; 
+            input_ready = 1;            
         } else {
             if (rx_index < sizeof(rx_buffer) - 1) {
                 rx_buffer[rx_index++] = rx_data;
                 HAL_UART_Transmit(&huart1, &rx_data, 1, 10);
             }
         }
-        HAL_UART_Receive_IT(&huart1, &rx_data, 1); 
+        HAL_UART_Receive_IT(&huart1, &rx_data, 1);
     }
 }
-
 /* USER CODE END 4 */
 
 /**
