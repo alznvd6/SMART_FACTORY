@@ -2897,3 +2897,12 @@ Caused by: java.nio.channels.ClosedChannelException
 
 !ENTRY org.eclipse.equinox.p2.metadata.repository 4 1000 2026-07-09 13:42:34.801
 !MESSAGE No repository found at https://download.eclipse.org/releases/2024-09.
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-07-09 14:10:34.450
+!MESSAGE Indexed 'serial_connection_between_boards' (20 sources, 113 headers) in 1.48 sec: 8,328 declarations; 37,227 references; 2 unresolved inclusions; 36 syntax errors; 186 unresolved names (0.41%)
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-07-09 14:24:29.374
+!MESSAGE Indexed 'serial_connection_between_boards' (20 sources, 113 headers) in 1.2 sec: 8,345 declarations; 37,329 references; 2 unresolved inclusions; 36 syntax errors; 186 unresolved names (0.41%)
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-07-09 14:25:45.773
+!MESSAGE Indexed 'serial_connection_board_2' (18 sources, 106 headers) in 1.31 sec: 7,807 declarations; 31,166 references; 2 unresolved inclusions; 36 syntax errors; 188 unresolved names (0.48%)
