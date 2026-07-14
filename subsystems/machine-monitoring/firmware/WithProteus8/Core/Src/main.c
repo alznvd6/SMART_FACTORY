@@ -18,14 +18,12 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+
+/* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 #include <string.h>
 #include "lcd.h"
-/* USER CODE END Includes */
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
-
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -66,7 +64,7 @@ static void MX_USART1_UART_Init(void);
 
 uint16_t adc;
 
-char msg[20];
+char msg[40];
 
 /* USER CODE END 0 */
 
@@ -101,7 +99,7 @@ int main(void)
   MX_GPIO_Init();
   MX_ADC1_Init();
   MX_USART1_UART_Init();
-/* USER CODE BEGIN 2 */
+  /* USER CODE BEGIN 2 */
 	HAL_ADC_Start(&hadc1);
 	LCD_Init();
 	LCD_Clear();
@@ -110,7 +108,7 @@ int main(void)
 	LCD_SetCursor(1, 0);
 	LCD_Print("Initializing...");
 	HAL_Delay(2000);
-/* USER CODE END 2 */
+  /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -119,63 +117,77 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-		HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
-		adc = HAL_ADC_GetValue(&hadc1);
+HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
+adc = HAL_ADC_GetValue(&hadc1);
 
-		// ??? vibration ?? ????? ? ?????? ???????
-// ????? ?? mm/s ?? ???? ????????? ISO 10816
-		float vibration = (adc / 4095.0f) * 14.0f;
-		uint8_t vib_int = (uint8_t)vibration;
-		uint8_t vib_dec = (uint8_t)((vibration - vib_int) * 10);
+// ?????? ?? ????? ???? - ???? float ???? ??????? ?? ???? ????
+// ?????? 0 ?? 14.0 mm/s? ????? 10 = 0 ?? 140
+uint16_t vib_scaled = (uint16_t)(((uint32_t)adc * 140) / 4095);
+uint8_t vib_int = (uint8_t)(vib_scaled / 10);
+uint8_t vib_dec = (uint8_t)(vib_scaled % 10);
 
-		// ?????????? ISO 10816
-		// NORMAL: 0 ?? 2.8 mm/s ? adc < 819
-		// WARNING: 2.8 ?? 7.1 mm/s ? adc < 2074  
-		// DANGER: ????? 7.1 mm/s
+// ????? ????? ?? ???? ISO 10816
+// NORMAL  : 0.0 - 2.8 mm/s
+// WARNING : 2.8 - 7.1 mm/s
+// DANGER  : ????? 7.1 mm/s
+const char* status;
+if (adc < 819)
+    status = "NORMAL  ";
+else if (adc < 2074)
+    status = "WARNING!";
+else
+    status = "DANGER!!";
 
-		sprintf(msg, "Vib:%.1fmm/s %s\r\n", vibration,
-				adc < 819 ? "NORMAL" : adc < 2074 ? "WARNING" : "DANGER");
-				HAL_UART_Transmit(&huart1,(uint8_t*)msg,strlen(msg),HAL_MAX_DELAY);
+// ????? UART
+sprintf(msg, "Vib:%u.%u mm/s %s\r\n",
+    (unsigned int)vib_int,
+    (unsigned int)vib_dec,
+    status);
+HAL_UART_Transmit(&huart1, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
 
-				// ????? LED
-				if (adc < 819)
-		{
-				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
-				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
-				HAL_Delay(500);
-		}
-		else if (adc < 2074)
-		{
-				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
-				HAL_Delay(500);
-				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
-				HAL_Delay(500);
-		}
-		else
-		{
-				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
-				HAL_Delay(100);
-				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
-				HAL_Delay(100);
-		}
-
-		char lcdMsg[17];
-		sprintf(lcdMsg, "Vib:%u.%umm/s   ", vib_int, vib_dec);
-		LCD_SetCursor(0, 0);
-		LCD_Print(lcdMsg);
-
-		LCD_SetCursor(1, 0);
-		if (adc < 819)
-				LCD_Print("Status: NORMAL  ");
-		else if (adc < 2074)
-				LCD_Print("Status: WARNING!");
-		else
-				LCD_Print("Status: DANGER!!");
-  /* USER CODE END 3 */
+// ????? LED
+if (adc < 819)
+{
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
+    HAL_Delay(500);
+}
+else if (adc < 2074)
+{
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
+    HAL_Delay(500);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
+    HAL_Delay(500);
+}
+else
+{
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
+    HAL_Delay(100);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
+    HAL_Delay(100);
 }
 
+// ????? LCD - ?????? 16 ???????
+char lcdLine1[17];
+char lcdLine2[17];
+
+sprintf(lcdLine1, "Vib:%2u.%u mm/s  ",
+    (unsigned int)vib_int,
+    (unsigned int)vib_dec);
+lcdLine1[16] = '\0';
+
+sprintf(lcdLine2, "Status: %s", status);
+lcdLine2[16] = '\0';
+
+LCD_SetCursor(0, 0);
+LCD_Print(lcdLine1);
+LCD_SetCursor(1, 0);
+LCD_Print(lcdLine2);
+  /* USER CODE END 3 */
+}
+}
 /**
   * @brief System Clock Configuration
   * @retval None

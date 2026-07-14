@@ -1,9 +1,9 @@
 --cpu Cortex-M3
 "withproteus8\startup_stm32f103x6.o"
+"withproteus8\lcd.o"
 "withproteus8\main.o"
 "withproteus8\stm32f1xx_it.o"
 "withproteus8\stm32f1xx_hal_msp.o"
-"withproteus8\lcd.o"
 "withproteus8\stm32f1xx_hal_gpio_ex.o"
 "withproteus8\stm32f1xx_hal_adc.o"
 "withproteus8\stm32f1xx_hal_adc_ex.o"
