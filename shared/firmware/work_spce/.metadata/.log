@@ -1651,3 +1651,18 @@ Caused by: java.nio.channels.UnresolvedAddressException
 
 !ENTRY org.eclipse.cdt.core 1 0 2026-07-15 13:48:26.459
 !MESSAGE Indexed 'Env_Monitor_Board_2' (18 sources, 106 headers) in 1.07 sec: 7,819 declarations; 31,345 references; 2 unresolved inclusions; 36 syntax errors; 188 unresolved names (0.48%)
+!SESSION 2026-07-15 14:33:32.537 -----------------------------------------------
+eclipse.buildId=Version 1.19.0
+java.version=21.0.3
+java.vendor=Eclipse Adoptium
+BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=en_US
+Command-line arguments:  -os win32 -ws win32 -arch x86_64
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 4 4 2026-07-15 14:33:42.986
+!MESSAGE CubeMX plugin appears to be active, Log4j initialization might be too late.
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2026-07-15 14:33:42.986
+!MESSAGE Log4j2 initialized with config file E:\SMART_FACTORY\shared\firmware\work_spce\.metadata\.log4j2.xml
+
+!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2026-07-15 14:34:06.960
+!MESSAGE Started RMI Server, listening on port 41337
