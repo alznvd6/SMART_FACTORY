@@ -189,6 +189,17 @@ void ENV_Task(void) {
         Display_Current_UI();
         ui_needs_refresh = 0;
     }
+    char telemetry_packet[80];
+        float cur_t = (total_samples_collected > 0) ? temp_history[(buffer_index == 0 ? MOVING_AVG_SAMPLES : buffer_index) - 1] : 0.0f;
+
+        // Structure: @TEMP=<val>|AVG=<val>|FIRE=<status>|LOCK=<0/1>\n
+        snprintf(telemetry_packet, sizeof(telemetry_packet),
+                 "@TEMP=%.1f|AVG=%.1f|FIRE=%s|LOCK=%d\n",
+                 cur_t, average_temperature, is_system_locked ? "DANGER" : "SAFE", is_system_locked);
+
+        // Transmit over USART1 (Will seamlessly parse on Board 2)
+        HAL_UART_Transmit(env_huart, (uint8_t*)telemetry_packet, strlen(telemetry_packet), 100);
+
 }
 
 /* --- Private Helper Functions Implementation --- */
@@ -268,7 +279,7 @@ static void Update_LCD_Display(float current_temp) {
  * @brief Clears screen and displays terminal template maps based on current state
  */
 static void Display_Current_UI(void) {
-    char uart_buffer[350];
+    char uart_buffer[512];
     RTC_TimeTypeDef sTime = {0};
     RTC_DateTypeDef sDate = {0};
 
@@ -370,7 +381,8 @@ static void Display_Current_UI(void) {
             return;
     }
 
-    HAL_UART_Transmit(env_huart, (uint8_t*)uart_buffer, strlen(uart_buffer), 200);
+//    HAL_UART_Transmit(env_huart, (uint8_t*)uart_buffer, strlen(uart_buffer), 200);
+    HAL_UART_Transmit(env_huart, (uint8_t*)uart_buffer, strlen(uart_buffer), 1000); // Changed from 200 to 1000
 }
 
 /**

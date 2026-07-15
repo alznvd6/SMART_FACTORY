@@ -1,0 +1,19 @@
+13:59:41 **** Incremental Build of configuration Debug for project Env_Monitor_Board_2 ****
+make -j16 all 
+arm-none-eabi-gcc -o "Env_Monitor_Board_2.elf" @"objects.list"   -mcpu=cortex-m3 -T"E:\SMART_FACTORY\shared\firmware\Env_Monitor_Board_2\STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Env_Monitor_Board_2.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: Env_Monitor_Board_2.elf
+ 
+arm-none-eabi-size  Env_Monitor_Board_2.elf 
+arm-none-eabi-objdump -h -S Env_Monitor_Board_2.elf  > "Env_Monitor_Board_2.list"
+   text	   data	    bss	    dec	    hex	filename
+  15460	    152	   2160	  17772	   456c	Env_Monitor_Board_2.elf
+arm-none-eabi-objcopy  -O ihex Env_Monitor_Board_2.elf  "Env_Monitor_Board_2.hex"
+Finished building: default.size.stdout
+ 
+Finished building: Env_Monitor_Board_2.hex
+ 
+Finished building: Env_Monitor_Board_2.list
+ 
+
+13:59:41 Build Finished. 0 errors, 0 warnings. (took 606ms)
+

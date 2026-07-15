@@ -102,19 +102,22 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+  uint32_t last_execution_time = 0;
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-//	  if (current_time - last_execution_time >= 1000)
-//	      {
-//	          ENV_Task();
-//	          last_execution_time = current_time;
-//	      }
+	  uint32_t current_time = HAL_GetTick();
+	  if (current_time - last_execution_time >= 1300)
+	      {
+	          ENV_Task();
+	          last_execution_time = current_time;
+	      }
 	  // Non-Blocking State Machine
-       ENV_Task();
-       HAL_Delay(1500);
+//       ENV_Task();
+//       HAL_Delay(1500);
 
   }
   /* USER CODE END 3 */
