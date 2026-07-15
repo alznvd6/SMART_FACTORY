@@ -178,7 +178,7 @@ int main(void)
           snprintf(adcPacket, sizeof(adcPacket), "ADC=%lu\n", adcValue);
           HAL_UART_Transmit(&huart1, (uint8_t*)adcPacket, strlen(adcPacket), 100);
       }
-      /* USER CODE END WHILE */
+    /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
   }
