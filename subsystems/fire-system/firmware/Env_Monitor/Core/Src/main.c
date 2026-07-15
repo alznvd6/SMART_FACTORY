@@ -110,7 +110,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  uint32_t current_time = HAL_GetTick();
-	  if (current_time - last_execution_time >= 1300)
+	  if (current_time - last_execution_time >= 1000)
 	      {
 	          ENV_Task();
 	          last_execution_time = current_time;

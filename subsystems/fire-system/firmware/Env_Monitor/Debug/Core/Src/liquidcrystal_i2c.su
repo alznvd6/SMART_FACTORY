@@ -1,8 +1,9 @@
-../Core/Src/liquidcrystal_i2c.c:10:13:lcd_enable_pulse	8	static
-../Core/Src/liquidcrystal_i2c.c:17:13:lcd_write_nibble	16	static
-../Core/Src/liquidcrystal_i2c.c:25:6:lcd_send_cmd	16	static
-../Core/Src/liquidcrystal_i2c.c:31:6:lcd_send_data	16	static
-../Core/Src/liquidcrystal_i2c.c:37:6:lcd_init	8	static
-../Core/Src/liquidcrystal_i2c.c:60:6:lcd_send_string	16	static
-../Core/Src/liquidcrystal_i2c.c:66:6:lcd_clear	8	static
-../Core/Src/liquidcrystal_i2c.c:71:6:lcd_put_cur	16	static
+../Core/Src/liquidcrystal_i2c.c:40:13:lcd_enable_pulse	8	static
+../Core/Src/liquidcrystal_i2c.c:47:13:lcd_write_nibble	16	static
+../Core/Src/liquidcrystal_i2c.c:55:6:lcd_send_cmd	16	static
+../Core/Src/liquidcrystal_i2c.c:61:6:lcd_send_data	16	static
+../Core/Src/liquidcrystal_i2c.c:72:6:lcd_create_custom_char	24	static
+../Core/Src/liquidcrystal_i2c.c:82:6:lcd_init	8	static
+../Core/Src/liquidcrystal_i2c.c:111:6:lcd_send_string	16	static
+../Core/Src/liquidcrystal_i2c.c:117:6:lcd_clear	8	static
+../Core/Src/liquidcrystal_i2c.c:122:6:lcd_put_cur	16	static

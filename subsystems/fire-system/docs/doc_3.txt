@@ -1,0 +1,95 @@
+Here is a clean, professional engineering report and documentation of the issues encountered and how they were resolved. You can copy and paste this directly into a `.txt` file for your project documentation.
+
+```text
+================================================================================
+           EMBEDDED SYSTEMS ENGINEERING REPORT & PROJECT DOCUMENTATION
+================================================================================
+Project: Smart Factory Environment & Safety Monitoring System
+Module:  Environment Controller (environment.c)
+Author:  Navid
+Date:    July 15, 2026
+================================================================================
+
+1. OVERVIEW
+--------------------------------------------------------------------------------
+This document outlines the software engineering problems encountered during the 
+integration of the UART CLI configuration menu, the character LCD display matrix, 
+and the sensor processing engine on the STM32 platform. It covers the technical 
+root causes and the robust solutions implemented to ensure real-time stability.
+
+
+2. PROBLEM LOG & RESOLUTIONS
+--------------------------------------------------------------------------------
+
+CRITICAL ISSUE 1: Character LCD & System UI Freezing Upon Input Execution
+--------------------------------------------------------------------------------
+* Symptom: 
+  The 20x4 I2C LCD completely locked up, stopped updating its clock timer, and 
+  the serial terminal became completely unresponsive immediately after hitting 
+  'Enter' to send a menu command.
+
+* Root Cause: 
+  The menu logic processing function (`Process_Menu_Input`) was being invoked 
+  directly inside the UART Receive Interrupt Service Routine (`ENV_ReceiveHandler`). 
+  Inside this execution path, blockings calls like `HAL_Delay(1000)` were handled. 
+  Because UART interrupt priorities are equal to or higher than the SysTick 
+  timer interrupt by default on the Cortex-M core, the core entered a deadlock 
+  state where `HAL_Delay` would wait infinitely for a tick counter that was 
+  prevented from incrementing.
+
+* Resolution: 
+  Decoupled UI state computation and command execution from the ISR context. 
+  The `ENV_ReceiveHandler` interrupt function was slimmed down to strictly trap 
+  incoming characters into a static volatile ring buffer and set a non-blocking 
+  concurrency flag (`command_ready = 1`). The deferred heavy payload execution 
+  was safely moved out to the main background operational thread inside `ENV_Task`.
+
+
+CRITICAL ISSUE 2: Target Temperature Resolving to 0.0 C Upon Modification
+--------------------------------------------------------------------------------
+* Symptom: 
+  Entering a valid climate command like `set_temp 30` caused the system to parse 
+  the value incorrectly, resetting the system parameter target to a destructive 
+  `0.0 C` state.
+
+* Root Cause: 
+  Standard C library evaluation routines like `sscanf` and `atof` depend on 
+  toolchain configurations for floating-point parsing support. By default, 
+  under optimized embedded compilers (such as GCC ARM cross-compilers in STM32CubeIDE 
+  and Keil), float scanning capabilities (`-u _scanf_float`) are fully omitted 
+  from binaries to conserve flash and RAM footprint space. Thus, evaluating `%f` 
+  failed silently, rendering data assignments as zero. Furthermore, running double-
+  precision evaluations inside unaligned ISR stacks risked deep runtime corruptions.
+
+* Resolution: 
+  Designed and integrated a lightweight, deterministic custom string-to-float 
+  parsing algorithm inside `Process_Menu_Input`. The parser isolates the target 
+  string pointer, dynamically strips out accidental white spaces, evaluates 
+  leading polar sign variables (`-` or `+`), computes base-10 integer values, 
+  and appends decimal fractional steps precisely. This removed standard library 
+  dependencies entirely, providing complete compiler/IDE independence.
+
+
+3. MODULE ARCHITECTURE SUMMARY
+--------------------------------------------------------------------------------
+The refactored runtime software model utilizes a reliable "Split-Context" architecture:
+
+1. Asynchronous ISR Context (`ENV_ReceiveHandler`):
+   Captures terminal interface strings, masks credential screens securely via asterisks, 
+   manages destructive characters (backspaces), and raises lightweight execution flags.
+
+2. Synchronous Main Loop Context (`ENV_Task`):
+   Samples analog inputs safely, handles data smoothing (Moving Average Filter), 
+   evaluates safety interlocking mechanisms, rewrites the character matrix LCD display 
+   asynchronously, checks state machine menus, and fires terminal command parsers.
+
+
+4. CONCLUSION
+--------------------------------------------------------------------------------
+By establishing strict boundaries between blocking thread runtimes and asynchronous 
+hardware traps, execution latency spikes were completely mitigated. The system now 
+exhibits robust stability, error-free terminal command parsing, and deterministic 
+safety device interlock controls.
+================================================================================
+
+```

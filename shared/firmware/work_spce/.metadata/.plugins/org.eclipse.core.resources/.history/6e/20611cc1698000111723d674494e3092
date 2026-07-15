@@ -1,0 +1,23 @@
+/*
+ * environment.h
+ *
+ * Created on: Jul 5, 2026
+ * Author: Navid
+ */
+
+#ifndef INC_ENVIRONMENT_H_
+#define INC_ENVIRONMENT_H_
+
+#include "stm32f1xx_hal.h"
+#include "main.h"               // Provides CubeMX labels (FAN_Pin, FIRE_1_Pin, etc.)
+#include "rtc.h"                // Cleanly includes RTC handle types
+
+#define MOVING_AVG_SAMPLES      10
+#define ALARM_LOCK_DURATION_MS  5000U // 5 seconds lock duration
+
+/* Public Core Application API Profiles */
+void ENV_Init(ADC_HandleTypeDef *hadc_ptr, UART_HandleTypeDef *huart_ptr, RTC_HandleTypeDef *hrtc_ptr);
+void ENV_Task(void);
+void ENV_ReceiveHandler(uint8_t rx_char);
+
+#endif /* INC_ENVIRONMENT_H_ */

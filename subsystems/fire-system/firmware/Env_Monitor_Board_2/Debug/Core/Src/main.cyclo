@@ -1,0 +1,9 @@
+../Core/Src/main.c:76:6:printRemoteConsole	2
+../Core/Src/main.c:125:6:Parse_Telemetry	5
+../Core/Src/main.c:144:6:HAL_UART_RxCpltCallback	6
+../Core/Src/main.c:176:5:main	2
+../Core/Src/main.c:234:6:SystemClock_Config	3
+../Core/Src/main.c:271:13:MX_USART1_UART_Init	2
+../Core/Src/main.c:304:13:MX_USART2_UART_Init	2
+../Core/Src/main.c:337:13:MX_GPIO_Init	1
+../Core/Src/main.c:359:6:Error_Handler	1

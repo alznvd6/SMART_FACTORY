@@ -5,13 +5,13 @@
  * Author: Navid
  */
 
-#include <lcd_parallel.h>  /* Explicitly added for the custom I2C LCD driver */
+#include <lcd_parallel.h>
 #include "environment.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
-/* --- Hardware Pin Definitions Mapping --- */
+/* --- Pin Definitions --- */
 #define ENV_GPIO_PORT              GPIOA
 
 #define PIN_FAN                    GPIO_PIN_1
@@ -23,13 +23,9 @@
 #define PIN_BUZZER                 GPIO_PIN_7
 
 /* --- Configuration Constants --- */
-#ifndef ALARM_LOCK_DURATION_MS
-#define ALARM_LOCK_DURATION_MS     1000U
-#endif
-
 #define RX_BUFFER_SIZE             32
 
-/* --- UI Menu State Machine Enumeration --- */
+/* --- UI Menu State Machine --- */
 typedef enum {
     UI_STATE_MAIN_MENU,
     UI_STATE_MONITORING,
@@ -44,7 +40,7 @@ static ADC_HandleTypeDef  *env_hadc;
 static UART_HandleTypeDef *env_huart;
 static RTC_HandleTypeDef  *env_hrtc;
 
-/* Climate Dynamic Parameters */
+/* Climate */
 static float target_temp = 25.0f;
 static float tolerance_percent = 0.20f;
 
@@ -61,11 +57,10 @@ static uint8_t  fire_alarm_muted = 0;
 /* UI State Controls */
 static UI_State_t current_ui_state = UI_STATE_MAIN_MENU;
 static uint8_t    ui_needs_refresh = 1;
-static uint32_t   last_monitoring_update = 0;
 
-/* Command Line Shell Buffer */
-static char    rx_buffer[RX_BUFFER_SIZE];
-static uint8_t rx_index = 0;
+static char             rx_buffer[RX_BUFFER_SIZE];
+static volatile uint8_t rx_index = 0;
+static volatile uint8_t command_ready = 0; /* Defer processing out of ISR context */
 
 /* --- Private Helper Functions Prototypes --- */
 static void  Add_Temperature_To_History(float new_temp);
@@ -75,6 +70,7 @@ static void  Control_Fire_Safety(char *fire_status_msg, size_t msg_max_len);
 static void  Display_Current_UI(void);
 static void  Process_Menu_Input(char *input);
 static void  Update_LCD_Display(float current_temp);
+static char* Parse_Int_Field(char *str, int *output, char delimiter);
 
 /* Reference to global CubeMX generated I2C instance handle */
 extern I2C_HandleTypeDef hi2c1;
@@ -89,14 +85,13 @@ void ENV_Init(ADC_HandleTypeDef *hadc_ptr, UART_HandleTypeDef *huart_ptr, RTC_Ha
     env_huart = huart_ptr;
     env_hrtc  = hrtc_ptr;
 
-    /* Clear Shell Buffer */
     memset(rx_buffer, 0, RX_BUFFER_SIZE);
     rx_index = 0;
+    command_ready = 0;
 
     current_ui_state = UI_STATE_MAIN_MENU;
     ui_needs_refresh = 1;
 
-    /* Setup LCD Device */
     lcd_init();
     lcd_clear();
     lcd_put_cur(0, 2);
@@ -108,51 +103,53 @@ void ENV_Init(ADC_HandleTypeDef *hadc_ptr, UART_HandleTypeDef *huart_ptr, RTC_Ha
 }
 
 /**
- * @brief Non-blocking UART Character Receiver Handler for UI Menu Shell
+ * @brief Non-blocking UART Character Receiver Handler for UI Menu Shell (ISR Context)
  */
 void ENV_ReceiveHandler(uint8_t rx_char) {
-    /* Mask or echo input contextually (Do not clear terminal if user is typing) */
+    if (rx_char == '\n' || command_ready) {
+        return;
+    }
+
     if (current_ui_state == UI_STATE_SETTINGS_AUTH || current_ui_state == UI_STATE_CONTROL_AUTH) {
         char asterisk = '*';
-        if (rx_char != '\r' && rx_char != '\n' && rx_char != '\b' && rx_char != 127) {
+        if (rx_char != '\r' && rx_char != '\b' && rx_char != 127) {
             HAL_UART_Transmit(env_huart, (uint8_t*)&asterisk, 1, 10);
         }
     } else {
         HAL_UART_Transmit(env_huart, &rx_char, 1, 10);
     }
 
-    /* Check for Carriage Return or Line Feed (End of input command) */
-    if (rx_char == '\r' || rx_char == '\n') {
+    if (rx_char == '\r') {
         rx_buffer[rx_index] = '\0';
-        Process_Menu_Input(rx_buffer);
-        rx_index = 0;
-        memset(rx_buffer, 0, RX_BUFFER_SIZE);
+        command_ready = 1; /* Raise flag to process safely in main loop thread */
     }
-    /* Check for Backspace */
     else if (rx_char == '\b' || rx_char == 127) {
         if (rx_index > 0) {
             rx_index--;
             rx_buffer[rx_index] = '\0';
-            /* Destructive backspace sequence for terminal rendering */
             char *backspace_seq = "\b \b";
             HAL_UART_Transmit(env_huart, (uint8_t*)backspace_seq, 3, 10);
         }
     }
-    /* Append character to command string if space is available */
     else if (rx_index < (RX_BUFFER_SIZE - 1)) {
         rx_buffer[rx_index++] = (char)rx_char;
     }
 }
 
 /**
- * @brief Periodic Task for execution inside the main background loop
+ * @brief Periodic Task for execution inside the main background loop (Thread Context)
+ */
+/**
+ * @brief Periodic Task for execution inside the main background loop (Thread Context)
  */
 void ENV_Task(void) {
     uint32_t adc_value = 0;
     float current_temperature = 0.0f;
     char fire_status[30] = "CLEAR";
 
-    /* 1. Sample Temperature Sensor via ADC channel (Safety Core Always Runs) */
+    static uint32_t last_terminal_update_time = 0;
+    uint32_t current_time = HAL_GetTick();
+
     HAL_ADC_Start(env_hadc);
     if (HAL_ADC_PollForConversion(env_hadc, 10) == HAL_OK) {
         adc_value = HAL_ADC_GetValue(env_hadc);
@@ -163,115 +160,85 @@ void ENV_Task(void) {
 
     float average_temperature = Get_Average_Temperature();
 
-    /* 2. Execute Safety Critical Monitor Core */
     Control_Fire_Safety(fire_status, sizeof(fire_status));
 
-    /* 3. Execute Climate Control Loops based on Emergency Interlocks */
     if (!is_system_locked) {
         Control_Temperature_Actuators(average_temperature);
     } else {
-        /* Emergency Shutdown: Turn off actuators to prevent feeding oxygen/energy */
         HAL_GPIO_WritePin(ENV_GPIO_PORT, PIN_FAN | PIN_HEATER, GPIO_PIN_RESET);
     }
 
-    /* 4. Update the character matrix LCD (Proteus-optimized Non-flicker display logic) */
     Update_LCD_Display(average_temperature);
 
-    /* 5. Real-time periodic updates if UI state is in Monitoring Mode (Every 1 second) */
-    uint32_t current_time = HAL_GetTick();
-    if (current_ui_state == UI_STATE_MONITORING && (current_time - last_monitoring_update >= 1000U)) {
-        last_monitoring_update = current_time;
-        ui_needs_refresh = 1;
+    if (current_ui_state == UI_STATE_MONITORING) {
+        if (current_time - last_terminal_update_time >= 1000) {
+            ui_needs_refresh = 1;
+            last_terminal_update_time = current_time;
+        }
+    } else {
+        /* Keep the timer updated so it doesn't instantly fire when switching menus */
+        last_terminal_update_time = current_time;
     }
 
-    /* 6. Process Terminal Redrawing Manager */
+    if (command_ready) {
+        Process_Menu_Input(rx_buffer);
+
+        rx_index = 0;
+        memset(rx_buffer, 0, RX_BUFFER_SIZE);
+        command_ready = 0;
+    }
+
     if (ui_needs_refresh) {
         Display_Current_UI();
         ui_needs_refresh = 0;
     }
-    char telemetry_packet[80];
-        float cur_t = (total_samples_collected > 0) ? temp_history[(buffer_index == 0 ? MOVING_AVG_SAMPLES : buffer_index) - 1] : 0.0f;
-
-        // Structure: @TEMP=<val>|AVG=<val>|FIRE=<status>|LOCK=<0/1>\n
-        snprintf(telemetry_packet, sizeof(telemetry_packet),
-                 "@TEMP=%.1f|AVG=%.1f|FIRE=%s|LOCK=%d\n",
-                 cur_t, average_temperature, is_system_locked ? "DANGER" : "SAFE", is_system_locked);
-
-        // Transmit over USART1 (Will seamlessly parse on Board 2)
-        HAL_UART_Transmit(env_huart, (uint8_t*)telemetry_packet, strlen(telemetry_packet), 100);
-
 }
 
 /* --- Private Helper Functions Implementation --- */
 
 /**
- * @brief Evaluates changes and updates the 16x2 LCD character matrix efficiently
+ * @brief
  */
 static void Update_LCD_Display(float current_temp) {
-    static uint8_t last_lcd_state = 0xFF;  /* Track layout changes */
-    static float last_logged_temp = -99.0f; /* Track small variations to avoid over-writing */
+    char lcd_line[21];
+    RTC_TimeTypeDef sTime = {0};
+    RTC_DateTypeDef sDate = {0};
+    static uint8_t fire_frame_select = 0;
 
-    uint8_t current_lcd_state = 0;
-    char lcd_line[17];
+    if (env_hrtc != NULL) {
+        HAL_RTC_GetTime(env_hrtc, &sTime, RTC_FORMAT_BIN);
+        HAL_RTC_GetDate(env_hrtc, &sDate, RTC_FORMAT_BIN);
+    }
+
+    snprintf(lcd_line, sizeof(lcd_line), "[%02d/%02d]     %02d:%02d:%02d",
+             sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
+    lcd_put_cur(0, 0);
+    lcd_send_string(lcd_line);
+
+    snprintf(lcd_line, sizeof(lcd_line), "Temp:%.1fC  Targ:%.1fC", current_temp, target_temp);
+    lcd_put_cur(1, 0);
+    lcd_send_string(lcd_line);
+
+    lcd_put_cur(2, 0);
+    if (current_temp > (target_temp * (1.0f + tolerance_percent))) {
+        lcd_send_string("STATE: OVERTEMP (FAN)");
+    } else if (current_temp < (target_temp * (1.0f - tolerance_percent))) {
+        lcd_send_string("STATE: UNDERTEMP(HTR)");
+    } else {
+        lcd_send_string("STATE: NORMAL (SAFE) ");
+    }
 
     uint8_t fire_triggered = (HAL_GPIO_ReadPin(ENV_GPIO_PORT, PIN_FIRE_1) == GPIO_PIN_SET) ||
                              (HAL_GPIO_ReadPin(ENV_GPIO_PORT, PIN_FIRE_2) == GPIO_PIN_SET);
 
-    /* Priority State Assignment */
+    lcd_put_cur(3, 0);
     if (fire_triggered || is_system_locked) {
-        current_lcd_state = 1; /* Fire state */
-    } else if (current_temp > (target_temp * (1.0f + tolerance_percent))) {
-        current_lcd_state = 2; /* Over-temp state */
-    } else if (current_temp < (target_temp * (1.0f - tolerance_percent))) {
-        current_lcd_state = 3; /* Under-temp state */
+        lcd_send_data(fire_frame_select);
+        lcd_send_string("   FIRE ALERT!   ");
+        lcd_send_data(fire_frame_select);
+        fire_frame_select = !fire_frame_select;
     } else {
-        current_lcd_state = 4; /* Normal operation */
-    }
-
-    /* Check if complete display refresh or numerical temperature update is required */
-    uint8_t temp_changed = (abs((int)(current_temp * 10) - (int)(last_logged_temp * 10)) >= 1);
-
-    if ((current_lcd_state != last_lcd_state) || temp_changed) {
-        /* If structural visual loop state changed, complete clean slate clear */
-        if (current_lcd_state != last_lcd_state) {
-            lcd_clear();
-            last_lcd_state = current_lcd_state;
-        }
-
-        last_logged_temp = current_temp;
-
-        switch (current_lcd_state) {
-            case 1:
-                lcd_put_cur(0, 0);
-                lcd_send_string("fire detected!!");
-                lcd_put_cur(1, 0);
-                lcd_send_string("SPRINKLERS ON!");
-                break;
-
-            case 2:
-                lcd_put_cur(0, 0);
-                lcd_send_string("over temprature");
-                lcd_put_cur(1, 0);
-                snprintf(lcd_line, sizeof(lcd_line), "-> fan on %.1fC", current_temp);
-                lcd_send_string(lcd_line);
-                break;
-
-            case 3:
-                lcd_put_cur(0, 0);
-                lcd_send_string("undertemp      ");
-                lcd_put_cur(1, 0);
-                snprintf(lcd_line, sizeof(lcd_line), "-> heater on%.1fC", current_temp);
-                lcd_send_string(lcd_line);
-                break;
-
-            case 4:
-                lcd_put_cur(0, 0);
-                lcd_send_string("safe and sound ");
-                lcd_put_cur(1, 0);
-                snprintf(lcd_line, sizeof(lcd_line), "Temp: %.1f C   ", current_temp);
-                lcd_send_string(lcd_line);
-                break;
-        }
+        lcd_send_string("ALARM: NO HAZARD    ");
     }
 }
 
@@ -279,7 +246,7 @@ static void Update_LCD_Display(float current_temp) {
  * @brief Clears screen and displays terminal template maps based on current state
  */
 static void Display_Current_UI(void) {
-    char uart_buffer[512];
+    char uart_buffer[700];
     RTC_TimeTypeDef sTime = {0};
     RTC_DateTypeDef sDate = {0};
 
@@ -288,9 +255,8 @@ static void Display_Current_UI(void) {
         HAL_RTC_GetDate(env_hrtc, &sDate, RTC_FORMAT_BIN);
     }
 
-    /* Clear Screen and Reset Cursor using ANSI Escape Code Sequence */
-    HAL_UART_Transmit(env_huart, (uint8_t*)"\033[2J\033[H", 7, 100);
-    HAL_UART_Transmit(env_huart, (uint8_t*)"\r\n", 2, 100);
+    /* Clear screen and home cursor */
+    HAL_UART_Transmit(env_huart, (uint8_t*)"\033[2J\033[H", 6, 100);
 
     switch (current_ui_state) {
         case UI_STATE_MAIN_MENU:
@@ -313,7 +279,7 @@ static void Display_Current_UI(void) {
 
             snprintf(uart_buffer, sizeof(uart_buffer),
                      "==================================================\r\n"
-                     "         REAL-TIMEE MONITORING MODE (EVERY 1s)     \r\n"
+                     "                 REAL-TIME MONITORING MODE        \r\n"
                      "==================================================\r\n"
                      " Timestamp   : [%04d-%02d-%02d] %02d:%02d:%02d\r\n"
                      " Current Temp: %.1f C\r\n"
@@ -343,15 +309,21 @@ static void Display_Current_UI(void) {
 
         case UI_STATE_SETTINGS_MENU:
             snprintf(uart_buffer, sizeof(uart_buffer),
-                     "=============================\r\n"
-                     "        SETTINGS MENU        \r\n"
-                     "=============================\r\n"
-                     " Current Target Temp: %.1f C\r\n"
-                     "-----------------------------\r\n"
-                     " > Type 'set_temp <val>' to change target\r\n"
+                     "=========================================\r\n"
+                     "             SETTINGS MENU               \r\n"
+                     "=========================================\r\n"
+                     " Clock   : %02d:%02d:%02d\r\n"
+                     " Calendar: 20%02d-%02d-%02d\r\n"
+                     " Target  : %.1f C\r\n"
+                     "-----------------------------------------\r\n"
+                     " > Type 'set_temp <val>'     to change temp\r\n"
+                     " > Type 'set_time <hh:mm:ss>' to change time\r\n"
+                     " > Type 'set_date <yy:mm:dd>' to change date\r\n"
                      " > Enter '0' to return to Main Menu\r\n"
-                     "=============================\r\n"
-                     "Command: \r\n");
+                     "=========================================\r\n"
+                     "Command: \r\n",
+                     sTime.Hours, sTime.Minutes, sTime.Seconds,
+                     sDate.Year, sDate.Month, sDate.Date, target_temp);
             break;
 
         case UI_STATE_CONTROL_AUTH:
@@ -381,17 +353,41 @@ static void Display_Current_UI(void) {
             return;
     }
 
-//    HAL_UART_Transmit(env_huart, (uint8_t*)uart_buffer, strlen(uart_buffer), 200);
-    HAL_UART_Transmit(env_huart, (uint8_t*)uart_buffer, strlen(uart_buffer), 1000); // Changed from 200 to 1000
+    HAL_UART_Transmit(env_huart, (uint8_t*)uart_buffer, strlen(uart_buffer), 1000);
 }
 
 /**
- * @brief Processes the complete command input string relative to current active UI State
+ * @brief Custom helper to parse integers out of strings safely without standard library dependence
+ */
+static char* Parse_Int_Field(char *str, int *output, char delimiter) {
+    if (!str || *str == '\0') return NULL;
+    int value = 0;
+    int digit_found = 0;
+
+    while (*str == ' ') str++;
+
+    while (*str >= '0' && *str <= '9') {
+        value = value * 10 + (*str - '0');
+        digit_found = 1;
+        str++;
+    }
+
+    if (!digit_found) return NULL;
+    *output = value;
+
+    if (delimiter != '\0') {
+        if (*str != delimiter) return NULL;
+        str++;
+    }
+    return str;
+}
+
+/**
+ * @brief Processes the complete command input string (Safely run in Main Loop context)
  */
 static void Process_Menu_Input(char *input) {
     char feedback[64];
 
-    /* Global Hook: Any input of exactly "0" safely falls back to main menu instantly */
     if (strcmp(input, "0") == 0) {
         current_ui_state = UI_STATE_MAIN_MENU;
         ui_needs_refresh = 1;
@@ -402,7 +398,6 @@ static void Process_Menu_Input(char *input) {
         case UI_STATE_MAIN_MENU:
             if (strcmp(input, "1") == 0) {
                 current_ui_state = UI_STATE_MONITORING;
-                last_monitoring_update = HAL_GetTick();
             } else if (strcmp(input, "2") == 0) {
                 current_ui_state = UI_STATE_SETTINGS_AUTH;
             } else if (strcmp(input, "3") == 0) {
@@ -416,7 +411,6 @@ static void Process_Menu_Input(char *input) {
             break;
 
         case UI_STATE_MONITORING:
-            /* Any input other than 0 in monitoring stays here, but 0 handled at top */
             ui_needs_refresh = 1;
             break;
 
@@ -433,11 +427,84 @@ static void Process_Menu_Input(char *input) {
 
         case UI_STATE_SETTINGS_MENU:
             if (strncmp(input, "set_temp ", 9) == 0) {
-                target_temp = (float)atof(input + 9);
+                char *ptr = input + 9;
+                while (*ptr == ' ') ptr++;
+
+                float val = 0.0f;
+                float sign = 1.0f;
+                if (*ptr == '-') { sign = -1.0f; ptr++; }
+                else if (*ptr == '+') { ptr++; }
+
+                while (*ptr >= '0' && *ptr <= '9') {
+                    val = val * 10.0f + (*ptr - '0');
+                    ptr++;
+                }
+                if (*ptr == '.') {
+                    ptr++;
+                    float divisor = 10.0f;
+                    while (*ptr >= '0' && *ptr <= '9') {
+                        val += (*ptr - '0') / divisor;
+                        divisor *= 10.0f;
+                        ptr++;
+                    }
+                }
+                target_temp = val * sign;
                 snprintf(feedback, sizeof(feedback), "\r\n[UPDATED] Target set to %.1f C", target_temp);
                 HAL_UART_Transmit(env_huart, (uint8_t*)feedback, strlen(feedback), 100);
                 HAL_Delay(1000);
-            } else {
+            }
+            else if (strncmp(input, "set_time ", 9) == 0) {
+                char *ptr = input + 9;
+                int hr = 0, min = 0, sec = 0;
+
+                ptr = Parse_Int_Field(ptr, &hr, ':');
+                ptr = Parse_Int_Field(ptr, &min, ':');
+                ptr = Parse_Int_Field(ptr, &sec, '\0');
+
+                if (ptr != NULL && hr >= 0 && hr < 24 && min >= 0 && min < 60 && sec >= 0 && sec < 60) {
+                    RTC_TimeTypeDef sTime = {0};
+                    sTime.Hours = (uint8_t)hr;
+                    sTime.Minutes = (uint8_t)min;
+                    sTime.Seconds = (uint8_t)sec;
+
+                    if (HAL_RTC_SetTime(env_hrtc, &sTime, RTC_FORMAT_BIN) == HAL_OK) {
+                        snprintf(feedback, sizeof(feedback), "\r\n[SUCCESS] Time updated to %02d:%02d:%02d", hr, min, sec);
+                    } else {
+                        snprintf(feedback, sizeof(feedback), "\r\n[ERROR] Hardware RTC writing failed!");
+                    }
+                } else {
+                    snprintf(feedback, sizeof(feedback), "\r\n[ERROR] Invalid Format! Use hh:mm:ss");
+                }
+                HAL_UART_Transmit(env_huart, (uint8_t*)feedback, strlen(feedback), 100);
+                HAL_Delay(1200);
+            }
+            else if (strncmp(input, "set_date ", 9) == 0) {
+                char *ptr = input + 9;
+                int yr = 0, mo = 0, dt = 0;
+
+                ptr = Parse_Int_Field(ptr, &yr, ':');
+                ptr = Parse_Int_Field(ptr, &mo, ':');
+                ptr = Parse_Int_Field(ptr, &dt, '\0');
+
+                if (ptr != NULL && yr >= 0 && yr <= 99 && mo >= 1 && mo <= 12 && dt >= 1 && dt <= 31) {
+                    RTC_DateTypeDef sDate = {0};
+                    sDate.Year = (uint8_t)yr;
+                    sDate.Month = (uint8_t)mo;
+                    sDate.Date = (uint8_t)dt;
+                    sDate.WeekDay = RTC_WEEKDAY_MONDAY;
+
+                    if (HAL_RTC_SetDate(env_hrtc, &sDate, RTC_FORMAT_BIN) == HAL_OK) {
+                        snprintf(feedback, sizeof(feedback), "\r\n[SUCCESS] Date updated to 20%02d-%02d-%02d", yr, mo, dt);
+                    } else {
+                        snprintf(feedback, sizeof(feedback), "\r\n[ERROR] Hardware RTC writing failed!");
+                    }
+                } else {
+                    snprintf(feedback, sizeof(feedback), "\r\n[ERROR] Invalid Format! Use yy:mm:dd");
+                }
+                HAL_UART_Transmit(env_huart, (uint8_t*)feedback, strlen(feedback), 100);
+                HAL_Delay(1200);
+            }
+            else {
                 HAL_UART_Transmit(env_huart, (uint8_t*)"\r\nUnknown Settings Parameter!", 29, 100);
                 HAL_Delay(1000);
             }
@@ -487,9 +554,6 @@ static void Process_Menu_Input(char *input) {
     }
 }
 
-/**
- * @brief Adds new sampled temperature data into the circular moving average array
- */
 static void Add_Temperature_To_History(float new_temp) {
     temp_history[buffer_index] = new_temp;
     buffer_index = (buffer_index + 1) % MOVING_AVG_SAMPLES;
@@ -498,9 +562,6 @@ static void Add_Temperature_To_History(float new_temp) {
     }
 }
 
-/**
- * @brief Calculates the arithmetic mean value of sampled dataset history
- */
 static float Get_Average_Temperature(void) {
     float sum = 0.0f;
     for (int i = 0; i < total_samples_collected; i++) {
@@ -509,50 +570,39 @@ static float Get_Average_Temperature(void) {
     return (total_samples_collected > 0) ? (sum / (float)total_samples_collected) : 0.0f;
 }
 
-/**
- * @brief Closed loop climate actuator management with tolerance deadband thresholds
- */
 static void Control_Temperature_Actuators(float avg_temp) {
     float high_thresh = target_temp * (1.0f + tolerance_percent);
     float low_thresh  = target_temp * (1.0f - tolerance_percent);
 
     if (avg_temp > high_thresh) {
-        HAL_GPIO_WritePin(ENV_GPIO_PORT, PIN_FAN, GPIO_PIN_SET);     /* Turn on cooling fan */
-        HAL_GPIO_WritePin(ENV_GPIO_PORT, PIN_HEATER, GPIO_PIN_RESET);/* Turn off heating line */
+        HAL_GPIO_WritePin(ENV_GPIO_PORT, PIN_FAN, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(ENV_GPIO_PORT, PIN_HEATER, GPIO_PIN_RESET);
     } else if (avg_temp < low_thresh) {
-        HAL_GPIO_WritePin(ENV_GPIO_PORT, PIN_FAN, GPIO_PIN_RESET);   /* Turn off cooling fan */
-        HAL_GPIO_WritePin(ENV_GPIO_PORT, PIN_HEATER, GPIO_PIN_SET);  /* Turn on heating line */
+        HAL_GPIO_WritePin(ENV_GPIO_PORT, PIN_FAN, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(ENV_GPIO_PORT, PIN_HEATER, GPIO_PIN_SET);
     } else {
-        /* Stable Zone: Idle structural load actuators */
         HAL_GPIO_WritePin(ENV_GPIO_PORT, PIN_FAN | PIN_HEATER, GPIO_PIN_RESET);
     }
 }
 
-/**
- * @brief Fire safety execution kernel handling sensors, suppression and audio alerts
- */
 static void Control_Fire_Safety(char *fire_status_msg, size_t msg_len) {
     uint8_t fire1 = (HAL_GPIO_ReadPin(ENV_GPIO_PORT, PIN_FIRE_1) == GPIO_PIN_SET);
     uint8_t fire2 = (HAL_GPIO_ReadPin(ENV_GPIO_PORT, PIN_FIRE_2) == GPIO_PIN_SET);
     uint32_t current_time = HAL_GetTick();
 
-    /* Edge triggered latch evaluation */
     if (fire1 || fire2) {
         last_fire_detected_time = current_time;
         is_system_locked = 1;
     }
-    /* Timeout Evaluation to drop structural latch lockout state */
     else if (is_system_locked && (current_time - last_fire_detected_time >= ALARM_LOCK_DURATION_MS)) {
         is_system_locked = 0;
         fire_alarm_muted = 0;
     }
 
-    /* Process Outputs relative to Latch State status */
     if (is_system_locked) {
         HAL_GPIO_WritePin(ENV_GPIO_PORT, PIN_SPRINKLER_1, fire1 ? GPIO_PIN_SET : GPIO_PIN_RESET);
         HAL_GPIO_WritePin(ENV_GPIO_PORT, PIN_SPRINKLER_2, fire2 ? GPIO_PIN_SET : GPIO_PIN_RESET);
 
-        /* Beep Audio Notification Engine */
         if (!fire_alarm_muted) {
             HAL_GPIO_TogglePin(ENV_GPIO_PORT, PIN_BUZZER);
         } else {
@@ -563,7 +613,6 @@ static void Control_Fire_Safety(char *fire_status_msg, size_t msg_len) {
             snprintf(fire_status_msg, msg_len, "!!! DANGER !!!");
         }
     } else {
-        /* All Safe: Assure execution systems and suppression vectors are forced low */
         HAL_GPIO_WritePin(ENV_GPIO_PORT, PIN_SPRINKLER_1 | PIN_SPRINKLER_2 | PIN_BUZZER, GPIO_PIN_RESET);
         if (fire_status_msg != NULL && msg_len > 0) {
             snprintf(fire_status_msg, msg_len, "SAFE");
