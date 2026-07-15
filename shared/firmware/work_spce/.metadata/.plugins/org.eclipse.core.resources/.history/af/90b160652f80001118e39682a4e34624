@@ -24,7 +24,7 @@
 
 /* --- Configuration Constants --- */
 #ifndef ALARM_LOCK_DURATION_MS
-#define ALARM_LOCK_DURATION_MS     1000U
+#define ALARM_LOCK_DURATION_MS     10000U
 #endif
 
 #define RX_BUFFER_SIZE             32

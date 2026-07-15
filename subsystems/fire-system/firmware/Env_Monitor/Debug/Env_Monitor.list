@@ -4215,8 +4215,8 @@ int main(void)
 	  // Non-Blocking State Machine
        ENV_Task();
  80023e8:	f7ff f858 	bl	800149c <ENV_Task>
-       HAL_Delay(2000);
- 80023ec:	f44f 60fa 	mov.w	r0, #2000	@ 0x7d0
+       HAL_Delay(1500);
+ 80023ec:	f240 50dc 	movw	r0, #1500	@ 0x5dc
  80023f0:	f000 fb28 	bl	8002a44 <HAL_Delay>
        ENV_Task();
  80023f4:	bf00      	nop
