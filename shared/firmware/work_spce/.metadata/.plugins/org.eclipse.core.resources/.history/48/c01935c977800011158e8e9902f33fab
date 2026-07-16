@@ -1,0 +1,103 @@
+/*
+ * hub.c
+ *
+ *  Created on: Jul 15, 2026
+ *      Author: Navid
+ */
+
+
+#include "hub.h"
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#define RX_BUFFER_SIZE 256
+
+/* --- Private Variables --- */
+static UART_HandleTypeDef *hub_huart;
+Factory_Telemetry_t latest_factory_data = {0};
+
+static char rx_buffer[RX_BUFFER_SIZE];
+static volatile uint8_t rx_index = 0;
+static volatile uint8_t packet_ready = 0;
+
+/* --- Private Helper --- */
+static void Parse_Telemetry_Packet(char *packet);
+
+/**
+ * @brief Initialize the Hub module
+ */
+void HUB_Init(UART_HandleTypeDef *huart_ptr) {
+    hub_huart = huart_ptr;
+    memset(rx_buffer, 0, RX_BUFFER_SIZE);
+    rx_index = 0;
+    packet_ready = 0;
+}
+
+/**
+ * @brief ISR Handler to build the incoming string from Board #1
+ */
+void HUB_ReceiveHandler(uint8_t rx_char) {
+    /* Ignore characters if we are still processing the last packet */
+    if (packet_ready) return;
+
+    if (rx_char == '\n') {
+        rx_buffer[rx_index] = '\0'; // Null-terminate the string
+        packet_ready = 1;           // Raise flag for the main loop
+    }
+    else if (rx_index < (RX_BUFFER_SIZE - 1)) {
+        rx_buffer[rx_index++] = (char)rx_char;
+    }
+}
+
+/**
+ * @brief Main loop background task for Board #2
+ */
+void HUB_Task(void) {
+    if (packet_ready) {
+        // 1. Parse the incoming string
+        Parse_Telemetry_Packet(rx_buffer);
+
+        // 2. Clear buffer and reset for the next packet
+        memset(rx_buffer, 0, RX_BUFFER_SIZE);
+        rx_index = 0;
+        packet_ready = 0;
+
+        // 3. (Optional) Re-enable UART interrupt here if needed,
+        // depending on how you structured your HAL_UART_Receive_IT
+    }
+}
+
+/**
+ * @brief Extracts the values from the Board #1 telemetry string
+ * Expected format: @TIME=hh:mm:ss|DATE=yy-mm-dd|CUR=xx.x|AVG=xx.x|FIRE=x|LOCK=x|TARG=xx.x
+ */
+static void Parse_Telemetry_Packet(char *packet) {
+    // Quick validation to ensure it's our telemetry packet
+    if (packet[0] != '@') return;
+
+    /*
+     * Using sscanf to slice up the formatted string.
+     * Note: Make sure '-u _scanf_float' is enabled in your GCC linker settings
+     * so sscanf can successfully read float (%f) values!
+     */
+    int parsed = sscanf(packet,
+        "@TIME=%2hhd:%2hhd:%2hhd|DATE=%2hhd-%2hhd-%2hhd|CUR=%f|AVG=%f|FIRE=%hhd|LOCK=%hhd|TARG=%f",
+        &latest_factory_data.time_hh,
+        &latest_factory_data.time_mm,
+        &latest_factory_data.time_ss,
+        &latest_factory_data.date_yy,
+        &latest_factory_data.date_mm,
+        &latest_factory_data.date_dd,
+        &latest_factory_data.current_temp,
+        &latest_factory_data.avg_temp,
+        &latest_factory_data.fire_triggered,
+        &latest_factory_data.system_locked,
+        &latest_factory_data.target_temp
+    );
+
+    if (parsed == 11) {
+        // Successfully parsed all 11 variables!
+        // You can trigger display updates or warning LEDs here.
+    }
+}

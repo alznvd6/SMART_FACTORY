@@ -1,0 +1,378 @@
+#include "environment.h"
+#include "lcd_parallel.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+/* --- Pin Definitions --- */
+#define ENV_GPIO_PORT              GPIOA
+
+#define PIN_FAN                    GPIO_PIN_1
+#define PIN_HEATER                 GPIO_PIN_2
+#define PIN_FIRE_1                 GPIO_PIN_3
+#define PIN_FIRE_2                 GPIO_PIN_4
+#define PIN_SPRINKLER_1            GPIO_PIN_5
+#define PIN_SPRINKLER_2            GPIO_PIN_6
+#define PIN_BUZZER                 GPIO_PIN_7
+
+/* --- Configuration Constants --- */
+#define RX_BUFFER_SIZE             32
+
+/* --- Private Variables --- */
+static ADC_HandleTypeDef  *env_hadc;
+static UART_HandleTypeDef *env_huart;
+static RTC_HandleTypeDef  *env_hrtc;
+
+/* Climate */
+static float target_temp = 25.0f;
+static float tolerance_percent = 0.20f;
+
+/* Filtering Circular Buffer */
+static float temp_history[MOVING_AVG_SAMPLES] = {0.0f};
+static int   buffer_index = 0;
+static int   total_samples_collected = 0;
+
+/* Safety and Access State */
+static uint32_t last_fire_detected_time = 0;
+static uint8_t  is_system_locked = 0;
+static uint8_t  fire_alarm_muted = 0;
+
+/* UART Buffer */
+static char             rx_buffer[RX_BUFFER_SIZE];
+static volatile uint8_t rx_index = 0;
+static volatile uint8_t command_ready = 0;
+
+/* --- Private Helper Functions Prototypes --- */
+static void  Stream_System_Telemetry(void);
+static void  Add_Temperature_To_History(float new_temp);
+static float Get_Average_Temperature(void);
+static void  Control_Temperature_Actuators(float avg_temp);
+static void  Control_Fire_Safety(void);
+static void  Update_LCD_Display(float current_temp);
+static void  Process_Incoming_Command(char *input);
+static char* Parse_Int_Field(char *str, int *output, char delimiter);
+
+/* --- Public Core Functions --- */
+
+/**
+ * @brief Initializes the Environment and Safety monitoring module
+ */
+void ENV_Init(ADC_HandleTypeDef *hadc_ptr, UART_HandleTypeDef *huart_ptr, RTC_HandleTypeDef *hrtc_ptr) {
+    env_hadc  = hadc_ptr;
+    env_huart = huart_ptr;
+    env_hrtc  = hrtc_ptr;
+
+    memset(rx_buffer, 0, RX_BUFFER_SIZE);
+    rx_index = 0;
+    command_ready = 0;
+
+    lcd_init();
+    lcd_clear();
+    lcd_put_cur(0, 2);
+    lcd_send_string("SYSTEM READY");
+    lcd_put_cur(1, 1);
+    lcd_send_string("INITIALIZING...");
+
+    HAL_Delay(1000);
+    lcd_clear();
+}
+
+/**
+ * @brief Non-blocking UART Character Receiver Handler
+ */
+void ENV_ReceiveHandler(uint8_t rx_char) {
+    if (command_ready) {
+        return;
+    }
+
+    if (rx_char == '\r' || rx_char == '\n') {
+        if (rx_index > 0) {
+            rx_buffer[rx_index] = '\0';
+            command_ready = 1;
+        }
+    }
+    else if (rx_char == '\b' || rx_char == 127) {
+        if (rx_index > 0) {
+            rx_index--;
+            rx_buffer[rx_index] = '\0';
+        }
+    }
+    else if (rx_index < (RX_BUFFER_SIZE - 1)) {
+        rx_buffer[rx_index++] = (char)rx_char;
+    }
+}
+
+void ENV_Task(void) {
+    uint32_t adc_value = 0;
+    float current_temperature = 0.0f;
+
+    // 1. Read temperature
+    HAL_ADC_Start(env_hadc);
+    if (HAL_ADC_PollForConversion(env_hadc, 10) == HAL_OK) {
+        adc_value = HAL_ADC_GetValue(env_hadc);
+        current_temperature = ((float)adc_value * 330.0f) / 4095.0f;
+        Add_Temperature_To_History(current_temperature);
+    }
+    HAL_ADC_Stop(env_hadc);
+
+    float average_temperature = Get_Average_Temperature();
+
+    // 2. Control safety features and actuators
+    Control_Fire_Safety();
+
+    if (!is_system_locked) {
+        Control_Temperature_Actuators(average_temperature);
+    } else {
+        HAL_GPIO_WritePin(ENV_GPIO_PORT, PIN_FAN | PIN_HEATER, GPIO_PIN_RESET);
+    }
+
+    // 3. Update LCD
+    Update_LCD_Display(average_temperature);
+
+    // 4. Stream Telemetry Packet downstream to Board #2
+    Stream_System_Telemetry();
+
+    // 5. Handle command if dispatched from Board #2
+    if (command_ready) {
+        Process_Incoming_Command(rx_buffer);
+
+        // Reset command parser
+        rx_index = 0;
+        memset(rx_buffer, 0, RX_BUFFER_SIZE);
+        command_ready = 0;
+    }
+}
+
+
+/**
+ * @brief Bundles runtime performance states into a machine-only packet over UART
+ */
+static void Stream_System_Telemetry(void) {
+    char tx_packet[128];
+    RTC_TimeTypeDef sTime = {0};
+    RTC_DateTypeDef sDate = {0};
+
+    if (env_hrtc != NULL) {
+        HAL_RTC_GetTime(env_hrtc, &sTime, RTC_FORMAT_BIN);
+        HAL_RTC_GetDate(env_hrtc, &sDate, RTC_FORMAT_BIN);
+    }
+
+    float cur_t = (total_samples_collected > 0) ? temp_history[(buffer_index == 0 ? MOVING_AVG_SAMPLES : buffer_index) - 1] : 0.0f;
+    float avg_t = Get_Average_Temperature();
+
+    uint8_t fire_triggered = (HAL_GPIO_ReadPin(ENV_GPIO_PORT, PIN_FIRE_1) == GPIO_PIN_SET) ||
+                             (HAL_GPIO_ReadPin(ENV_GPIO_PORT, PIN_FIRE_2) == GPIO_PIN_SET);
+
+    snprintf(tx_packet, sizeof(tx_packet),
+             "@TIME=%02d:%02d:%02d|DATE=%02d-%02d-%02d|CUR=%.1f|AVG=%.1f|FIRE=%d|LOCK=%d|TARG=%.1f\n",
+             sTime.Hours, sTime.Minutes, sTime.Seconds,
+             sDate.Year, sDate.Month, sDate.Date,
+             cur_t, avg_t, fire_triggered, is_system_locked, target_temp);
+
+    HAL_UART_Transmit(env_huart, (uint8_t*)tx_packet, strlen(tx_packet), 100);
+}
+
+/**
+ * @brief Updates 20 4 Parallel character matrix display
+ */
+static void Update_LCD_Display(float current_temp) {
+    char lcd_line[21];
+    RTC_TimeTypeDef sTime = {0};
+    RTC_DateTypeDef sDate = {0};
+    static uint8_t fire_frame_select = 0;
+
+    if (env_hrtc != NULL) {
+        HAL_RTC_GetTime(env_hrtc, &sTime, RTC_FORMAT_BIN);
+        HAL_RTC_GetDate(env_hrtc, &sDate, RTC_FORMAT_BIN);
+    }
+
+    snprintf(lcd_line, sizeof(lcd_line), "[%02d/%02d]     %02d:%02d:%02d",
+             sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
+    lcd_put_cur(0, 0);
+    lcd_send_string(lcd_line);
+
+    snprintf(lcd_line, sizeof(lcd_line), "Temp:%.1fC  Targ:%.1fC", current_temp, target_temp);
+    lcd_put_cur(1, 0);
+    lcd_send_string(lcd_line);
+
+    lcd_put_cur(2, 0);
+    if (current_temp > (target_temp * (1.0f + tolerance_percent))) {
+        lcd_send_string("STATE: OVERTEMP (FAN)");
+    } else if (current_temp < (target_temp * (1.0f - tolerance_percent))) {
+        lcd_send_string("STATE: UNDERTEMP(HTR)");
+    } else {
+        lcd_send_string("STATE: NORMAL (SAFE) ");
+    }
+
+    uint8_t fire_triggered = (HAL_GPIO_ReadPin(ENV_GPIO_PORT, PIN_FIRE_1) == GPIO_PIN_SET) ||
+                             (HAL_GPIO_ReadPin(ENV_GPIO_PORT, PIN_FIRE_2) == GPIO_PIN_SET);
+
+    lcd_put_cur(3, 0);
+    if (fire_triggered || is_system_locked) {
+        lcd_send_data(fire_frame_select);
+        lcd_send_string("   FIRE ALERT!   ");
+        lcd_send_data(fire_frame_select);
+        fire_frame_select = !fire_frame_select;
+    } else {
+        lcd_send_string("ALARM: NO HAZARD    ");
+    }
+}
+
+/**
+ * @brief Stateless command parser that processes modifications immediately
+ */
+static void Process_Incoming_Command(char *input) {
+    if (strncmp(input, "set_temp ", 9) == 0) {
+        char *ptr = input + 9;
+        while (*ptr == ' ') ptr++;
+
+        float val = 0.0f;
+        float sign = 1.0f;
+        if (*ptr == '-') { sign = -1.0f; ptr++; }
+        else if (*ptr == '+') { ptr++; }
+
+        while (*ptr >= '0' && *ptr <= '9') {
+            val = val * 10.0f + (*ptr - '0');
+            ptr++;
+        }
+        if (*ptr == '.') {
+            ptr++;
+            float divisor = 10.0f;
+            while (*ptr >= '0' && *ptr <= '9') {
+                val += (*ptr - '0') / divisor;
+                divisor *= 10.0f;
+                ptr++;
+            }
+        }
+        target_temp = val * sign;
+    }
+    else if (strncmp(input, "set_time ", 9) == 0) {
+        char *ptr = input + 9;
+        int hr = 0, min = 0, sec = 0;
+
+        ptr = Parse_Int_Field(ptr, &hr, ':');
+        ptr = Parse_Int_Field(ptr, &min, ':');
+        ptr = Parse_Int_Field(ptr, &sec, '\0');
+
+        if (ptr != NULL && hr >= 0 && hr < 24 && min >= 0 && min < 60 && sec >= 0 && sec < 60) {
+            RTC_TimeTypeDef sTime = {0};
+            sTime.Hours = (uint8_t)hr;
+            sTime.Minutes = (uint8_t)min;
+            sTime.Seconds = (uint8_t)sec;
+            HAL_RTC_SetTime(env_hrtc, &sTime, RTC_FORMAT_BIN);
+        }
+    }
+    else if (strncmp(input, "set_date ", 9) == 0) {
+        char *ptr = input + 9;
+        int yr = 0, mo = 0, dt = 0;
+
+        ptr = Parse_Int_Field(ptr, &yr, ':');
+        ptr = Parse_Int_Field(ptr, &mo, ':');
+        ptr = Parse_Int_Field(ptr, &dt, '\0');
+
+        if (ptr != NULL && yr >= 0 && yr <= 99 && mo >= 1 && mo <= 12 && dt >= 1 && dt <= 31) {
+            RTC_DateTypeDef sDate = {0};
+            sDate.Year = (uint8_t)yr;
+            sDate.Month = (uint8_t)mo;
+            sDate.Date = (uint8_t)dt;
+            sDate.WeekDay = RTC_WEEKDAY_MONDAY;
+            HAL_RTC_SetDate(env_hrtc, &sDate, RTC_FORMAT_BIN);
+        }
+    }
+    else if (strcmp(input, "reset_sys") == 0) {
+        is_system_locked = 0;
+        fire_alarm_muted = 0;
+        total_samples_collected = 0;
+        buffer_index = 0;
+
+        HAL_GPIO_WritePin(ENV_GPIO_PORT,
+                          PIN_FAN | PIN_HEATER | PIN_SPRINKLER_1 | PIN_SPRINKLER_2 | PIN_BUZZER,
+                          GPIO_PIN_RESET);
+    }
+    else if (strcmp(input, "mute_alarm") == 0) {
+        fire_alarm_muted = 1;
+        HAL_GPIO_WritePin(ENV_GPIO_PORT, PIN_BUZZER, GPIO_PIN_RESET);
+    }
+}
+
+static char* Parse_Int_Field(char *str, int *output, char delimiter) {
+    if (!str || *str == '\0') return NULL;
+    int value = 0;
+    int digit_found = 0;
+
+    while (*str == ' ') str++;
+
+    while (*str >= '0' && *str <= '9') {
+        value = value * 10 + (*str - '0');
+        digit_found = 1;
+        str++;
+    }
+
+    if (!digit_found) return NULL;
+    *output = value;
+
+    if (delimiter != '\0') {
+        if (*str != delimiter) return NULL;
+        str++;
+    }
+    return str;
+}
+
+static void Add_Temperature_To_History(float new_temp) {
+    temp_history[buffer_index] = new_temp;
+    buffer_index = (buffer_index + 1) % MOVING_AVG_SAMPLES;
+    if (total_samples_collected < MOVING_AVG_SAMPLES) {
+        total_samples_collected++;
+    }
+}
+
+static float Get_Average_Temperature(void) {
+    float sum = 0.0f;
+    for (int i = 0; i < total_samples_collected; i++) {
+        sum += temp_history[i];
+    }
+    return (total_samples_collected > 0) ? (sum / (float)total_samples_collected) : 0.0f;
+}
+
+static void Control_Temperature_Actuators(float avg_temp) {
+    float high_thresh = target_temp * (1.0f + tolerance_percent);
+    float low_thresh  = target_temp * (1.0f - tolerance_percent);
+
+    if (avg_temp > high_thresh) {
+        HAL_GPIO_WritePin(ENV_GPIO_PORT, PIN_FAN, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(ENV_GPIO_PORT, PIN_HEATER, GPIO_PIN_RESET);
+    } else if (avg_temp < low_thresh) {
+        HAL_GPIO_WritePin(ENV_GPIO_PORT, PIN_FAN, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(ENV_GPIO_PORT, PIN_HEATER, GPIO_PIN_SET);
+    } else {
+        HAL_GPIO_WritePin(ENV_GPIO_PORT, PIN_FAN | PIN_HEATER, GPIO_PIN_RESET);
+    }
+}
+
+static void Control_Fire_Safety(void) {
+    uint8_t fire1 = (HAL_GPIO_ReadPin(ENV_GPIO_PORT, PIN_FIRE_1) == GPIO_PIN_SET);
+    uint8_t fire2 = (HAL_GPIO_ReadPin(ENV_GPIO_PORT, PIN_FIRE_2) == GPIO_PIN_SET);
+    uint32_t current_time = HAL_GetTick();
+
+    if (fire1 || fire2) {
+        last_fire_detected_time = current_time;
+        is_system_locked = 1;
+    }
+    else if (is_system_locked && (current_time - last_fire_detected_time >= ALARM_LOCK_DURATION_MS)) {
+        is_system_locked = 0;
+        fire_alarm_muted = 0;
+    }
+
+    if (is_system_locked) {
+        HAL_GPIO_WritePin(ENV_GPIO_PORT, PIN_SPRINKLER_1, fire1 ? GPIO_PIN_SET : GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(ENV_GPIO_PORT, PIN_SPRINKLER_2, fire2 ? GPIO_PIN_SET : GPIO_PIN_RESET);
+
+        if (!fire_alarm_muted) {
+            HAL_GPIO_TogglePin(ENV_GPIO_PORT, PIN_BUZZER);
+        } else {
+            HAL_GPIO_WritePin(ENV_GPIO_PORT, PIN_BUZZER, GPIO_PIN_RESET);
+        }
+    } else {
+        HAL_GPIO_WritePin(ENV_GPIO_PORT, PIN_SPRINKLER_1 | PIN_SPRINKLER_2 | PIN_BUZZER, GPIO_PIN_RESET);
+    }
+}

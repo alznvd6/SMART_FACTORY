@@ -1,0 +1,430 @@
+#include "hub.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+/* Define global variable */
+Factory_Telemetry_t latest_factory_data;
+
+/* --- Hardware Interfaces --- */
+static UART_HandleTypeDef *huart_env;  // UART1: Connected to Board #1[cite: 15]
+static UART_HandleTypeDef *huart_pc;   // UART3: Connected to PC CLI Terminal[cite: 15]
+static UART_HandleTypeDef *huart_py;   // UART2: Connected to Python (COMPIM)  // UART3: Connected to PC CLI Terminal
+
+/* --- UI State Management --- */
+typedef enum {
+    UI_STATE_MAIN_MENU = 0,
+    UI_STATE_MONITORING,
+    UI_STATE_ENTER_PASSWORD,
+    UI_STATE_ADMIN_MENU,
+    UI_STATE_SET_TEMP,
+    UI_STATE_SET_TIME,
+    UI_STATE_SET_DATE
+} UI_State_t;
+
+static UI_State_t current_state = UI_STATE_MAIN_MENU;
+
+/* --- Buffered Data from Board #1 Telemetry --- */
+static char  telemetry_time[9]  = "00:00:00";
+static char  telemetry_date[9]  = "00-00-00";
+static float telemetry_cur_temp = 0.0f;
+static float telemetry_avg_temp = 0.0f;
+static float telemetry_target   = 25.0f;
+static int   telemetry_fire     = 0;
+static int   telemetry_lock     = 0;
+
+/* --- Local Input Buffers --- */
+#define CLI_INPUT_MAX           32
+static char             cli_input[CLI_INPUT_MAX];
+static volatile uint8_t cli_index = 0;
+static volatile uint8_t cli_line_ready = 0;
+
+#define TEL_INPUT_MAX           128
+static char             tel_input[TEL_INPUT_MAX];
+static volatile uint8_t tel_index = 0;
+static volatile uint8_t tel_packet_ready = 0;
+
+/* --- UI Redraw Flags --- */
+static uint8_t ui_needs_refresh = 1;
+
+/* --- Administrative Access --- */
+#define ADMIN_PASSWORD          "admin123"
+
+/* --- Non-Blocking Feedback Message --- */
+static char     feedback_message[64] = "";
+static uint32_t feedback_start_tick = 0;
+static uint8_t  showing_feedback = 0;
+#define FEEDBACK_DURATION_MS    2000
+
+/* --- Private Function Prototypes --- */
+static void Process_Telemetry_Packet(char *packet);
+static void Process_CLI_Command(char *cmd);
+static void Render_Terminal_UI(void);
+static void Clear_Screen(void);
+static void Send_PC(const char *str);
+static float Custom_Atof(const char *p);
+
+/* --- Core Public API --- */
+
+void HUB_Init(UART_HandleTypeDef *huart_env_ptr, UART_HandleTypeDef *huart_pc_ptr, UART_HandleTypeDef *huart_py_ptr) {
+    huart_env = huart_env_ptr;
+    huart_pc  = huart_pc_ptr;
+    huart_py  = huart_py_ptr;  // Save UART2 handle
+
+    memset(cli_input, 0, CLI_INPUT_MAX);
+    cli_index = 0;
+    cli_line_ready = 0;
+
+    memset(tel_input, 0, TEL_INPUT_MAX);
+    tel_index = 0;
+    tel_packet_ready = 0;
+
+    memset(&latest_factory_data, 0, sizeof(latest_factory_data));
+
+    Clear_Screen();
+    ui_needs_refresh = 1;
+}
+
+void HUB_ReceiveHandler(uint8_t rx_char, uint8_t uart_id) {
+    // 1. From Board #1 (Telemetry Packets)
+    if (uart_id == 1) {
+        if (tel_packet_ready) return;
+
+        if (rx_char == '\n' || rx_char == '\r') {
+            if (tel_index > 0) {
+                tel_input[tel_index] = '\0';
+                tel_packet_ready = 1;
+            }
+        } else if (tel_index < (TEL_INPUT_MAX - 1)) {
+            tel_input[tel_index++] = (char)rx_char;
+        }
+    }
+    // 2. From PC Terminal (CLI User Input)
+    else if (uart_id == 3) {
+        if (cli_line_ready) return;
+
+        if (rx_char == '\r' || rx_char == '\n') {
+            if (cli_index > 0) {
+                cli_input[cli_index] = '\0';
+                cli_line_ready = 1;
+            }
+        } else if (rx_char == '\b' || rx_char == 127) {
+            if (cli_index > 0) {
+                cli_index--;
+                cli_input[cli_index] = '\0';
+                Send_PC("\b \b");
+            }
+        } else if (cli_index < (CLI_INPUT_MAX - 1)) {
+            cli_input[cli_index++] = (char)rx_char;
+
+            if (current_state == UI_STATE_ENTER_PASSWORD) {
+                Send_PC("*"); // Mask passwords
+            } else {
+                char echo[2] = { (char)rx_char, '\0' };
+                Send_PC(echo);
+            }
+        }
+    }
+}
+
+void HUB_Task(void) {
+    uint32_t current_tick = HAL_GetTick();
+
+    // 1. Process Telemetry Packets
+    if (tel_packet_ready) {
+
+        // --- FORWARD RAW PACKET TO PYTHON COMPIM ---
+        // Your Python script reads lines using .readline(), meaning it's waiting for '\n'
+        char py_packet[132];
+        snprintf(py_packet, sizeof(py_packet), "%s\n", tel_input);
+        HAL_UART_Transmit(huart_py, (uint8_t*)py_packet, strlen(py_packet), 100);
+
+        // Process locally for the local PC dashboard state
+        Process_Telemetry_Packet(tel_input);
+        tel_index = 0;
+        memset(tel_input, 0, TEL_INPUT_MAX);
+        tel_packet_ready = 0;
+
+        // Only trigger a dynamic redraw during monitoring so we don't disrupt menus
+        if (current_state == UI_STATE_MONITORING) {
+            ui_needs_refresh = 1;
+        }
+    }
+
+    // 2. Process User Command Input
+    if (cli_line_ready) {
+        Process_CLI_Command(cli_input);
+        cli_index = 0;
+        memset(cli_input, 0, CLI_INPUT_MAX);
+        cli_line_ready = 0;
+        ui_needs_refresh = 1; // Always redraw after a command input[cite: 15]
+    }
+
+    // 3. Auto-wipe status feedback message on timer expire
+    if (showing_feedback && (current_tick - feedback_start_tick >= FEEDBACK_DURATION_MS)) {
+        showing_feedback = 0;
+        memset(feedback_message, 0, sizeof(feedback_message));
+        ui_needs_refresh = 1;
+    }
+
+    // 4. Render UI strictly on event change requests
+    if (ui_needs_refresh) {
+        ui_needs_refresh = 0;
+        Render_Terminal_UI();
+    }
+}
+
+/* --- Private Parsing Engine --- */
+
+static void Process_Telemetry_Packet(char *packet) {
+    if (packet == NULL || packet[0] != '@') return;
+
+    char *token = strtok(packet, "|");
+    while (token != NULL) {
+        if (strncmp(token, "@TIME=", 6) == 0 && strlen(token) >= 14) {
+            strncpy(telemetry_time, token + 6, 8);
+            telemetry_time[8] = '\0';
+        } else if (strncmp(token, "DATE=", 5) == 0 && strlen(token) >= 13) {
+            strncpy(telemetry_date, token + 5, 8);
+            telemetry_date[8] = '\0';
+        } else if (strncmp(token, "CUR=", 4) == 0) {
+            telemetry_cur_temp = Custom_Atof(token + 4);
+        } else if (strncmp(token, "AVG=", 4) == 0) {
+            telemetry_avg_temp = Custom_Atof(token + 4);
+        } else if (strncmp(token, "FIRE=", 5) == 0) {
+            telemetry_fire = atoi(token + 5);
+        } else if (strncmp(token, "LOCK=", 5) == 0) {
+            telemetry_lock = atoi(token + 5);
+        } else if (strncmp(token, "TARG=", 5) == 0) {
+            telemetry_target = Custom_Atof(token + 5);
+        }
+        token = strtok(NULL, "|");
+    }
+}
+
+static void Process_CLI_Command(char *cmd) {
+    switch (current_state) {
+        case UI_STATE_MAIN_MENU:
+            if (strcmp(cmd, "1") == 0) {
+                current_state = UI_STATE_MONITORING;
+            } else if (strcmp(cmd, "2") == 0) {
+                current_state = UI_STATE_ENTER_PASSWORD;
+            } else {
+                snprintf(feedback_message, sizeof(feedback_message), "Invalid Option. Choose 1 or 2.");
+                feedback_start_tick = HAL_GetTick();
+                showing_feedback = 1;
+            }
+            break;
+
+        case UI_STATE_MONITORING:
+            if (strcmp(cmd, "0") == 0) {
+                current_state = UI_STATE_MAIN_MENU;
+            } else {
+                // Treat any other key during monitoring as a manual refresh command
+                ui_needs_refresh = 1;
+            }
+            break;
+
+        case UI_STATE_ENTER_PASSWORD:
+            if (strcmp(cmd, ADMIN_PASSWORD) == 0) {
+                current_state = UI_STATE_ADMIN_MENU;
+                snprintf(feedback_message, sizeof(feedback_message), "Log-in Success!");
+            } else {
+                current_state = UI_STATE_MAIN_MENU;
+                snprintf(feedback_message, sizeof(feedback_message), "Invalid Password! Denied.");
+            }
+            feedback_start_tick = HAL_GetTick();
+            showing_feedback = 1;
+            break;
+
+        case UI_STATE_ADMIN_MENU:
+            if (strcmp(cmd, "1") == 0) {
+                current_state = UI_STATE_SET_TEMP;
+            } else if (strcmp(cmd, "2") == 0) {
+                current_state = UI_STATE_SET_TIME;
+            } else if (strcmp(cmd, "3") == 0) {
+                current_state = UI_STATE_SET_DATE;
+            } else if (strcmp(cmd, "4") == 0) {
+                HAL_UART_Transmit(huart_env, (uint8_t*)"reset_sys\r\n", 11, 100);
+                snprintf(feedback_message, sizeof(feedback_message), "System Reset Command Sent.");
+                feedback_start_tick = HAL_GetTick();
+                showing_feedback = 1;
+            } else if (strcmp(cmd, "5") == 0) {
+                HAL_UART_Transmit(huart_env, (uint8_t*)"mute_alarm\r\n", 12, 100);
+                snprintf(feedback_message, sizeof(feedback_message), "Alarm Audio Mute Sent.");
+                feedback_start_tick = HAL_GetTick();
+                showing_feedback = 1;
+            } else if (strcmp(cmd, "6") == 0) {
+                current_state = UI_STATE_MAIN_MENU;
+                snprintf(feedback_message, sizeof(feedback_message), "Logged Out.");
+                feedback_start_tick = HAL_GetTick();
+                showing_feedback = 1;
+            } else {
+                snprintf(feedback_message, sizeof(feedback_message), "Invalid Option.");
+                feedback_start_tick = HAL_GetTick();
+                showing_feedback = 1;
+            }
+            break;
+
+        case UI_STATE_SET_TEMP: {
+            char tx_cmd[32];
+            snprintf(tx_cmd, sizeof(tx_cmd), "set_temp %s\r\n", cmd);
+            HAL_UART_Transmit(huart_env, (uint8_t*)tx_cmd, strlen(tx_cmd), 100);
+            snprintf(feedback_message, sizeof(feedback_message), "Target Temp updated: %s C", cmd);
+            feedback_start_tick = HAL_GetTick();
+            showing_feedback = 1;
+            current_state = UI_STATE_ADMIN_MENU;
+            break;
+        }
+
+        case UI_STATE_SET_TIME: {
+            char tx_cmd[32];
+            snprintf(tx_cmd, sizeof(tx_cmd), "set_time %s\r\n", cmd);
+            HAL_UART_Transmit(huart_env, (uint8_t*)tx_cmd, strlen(tx_cmd), 100);
+            snprintf(feedback_message, sizeof(feedback_message), "System Time updated: %s", cmd);
+            feedback_start_tick = HAL_GetTick();
+            showing_feedback = 1;
+            current_state = UI_STATE_ADMIN_MENU;
+            break;
+        }
+
+        case UI_STATE_SET_DATE: {
+            char tx_cmd[32];
+            snprintf(tx_cmd, sizeof(tx_cmd), "set_date %s\r\n", cmd);
+            HAL_UART_Transmit(huart_env, (uint8_t*)tx_cmd, strlen(tx_cmd), 100);
+            snprintf(feedback_message, sizeof(feedback_message), "System Date updated: %s", cmd);
+            feedback_start_tick = HAL_GetTick();
+            showing_feedback = 1;
+            current_state = UI_STATE_ADMIN_MENU;
+            break;
+        }
+    }
+}
+
+/* --- CLI Drawing Engine --- */
+
+static void Render_Terminal_UI(void) {
+    char frame[1024];
+    memset(frame, 0, sizeof(frame));
+
+    // Clear Screen first
+    Clear_Screen();
+
+    // Draw Based on state
+    switch (current_state) {
+        case UI_STATE_MAIN_MENU:
+            snprintf(frame, sizeof(frame),
+                     "====================================================\r\n"
+                     "        SMART COLDROOM DISTRIBUTED DASHBOARD        \r\n"
+                     "====================================================\r\n"
+                     "  [1] Monitor Telemetry Values\r\n"
+                     "  [2] Administration Settings\r\n"
+                     "====================================================\r\n"
+                     "Menu Select> ");
+            break;
+
+        case UI_STATE_MONITORING:
+            snprintf(frame, sizeof(frame),
+                     "====================================================\r\n"
+                     "                TELEMETRY MONITORING                \r\n"
+                     "====================================================\r\n"
+                     "  Time: %s  |  Date: %s\r\n"
+                     "----------------------------------------------------\r\n"
+                     "  Current Temp : %.1f C\r\n"
+                     "  Average Temp : %.1f C\r\n"
+                     "  Target Temp  : %.1f C\r\n"
+                     "  Status       : %s\r\n"
+                     "  Safety Lock  : %s\r\n"
+                     "----------------------------------------------------\r\n"
+                     "  Press [0] to return to Main Menu\r\n"
+                     "  (Press any other key to manually refresh details)\r\n"
+                     "====================================================\r\n"
+                     "Console> ",
+                     telemetry_time, telemetry_date,
+                     telemetry_cur_temp, telemetry_avg_temp, telemetry_target,
+                     telemetry_fire ? "!!! FIRE DETECTED !!!" : "SECURE (NORMAL)",
+                     telemetry_lock ? "ACTIVE LOCKED (SAFETY SHUTDOWN)" : "OFF (SYSTEM ACTIVE)");
+            break;
+
+        case UI_STATE_ENTER_PASSWORD:
+            snprintf(frame, sizeof(frame),
+                     "====================================================\r\n"
+                     "              ADMIN SECURITY VERIFICATION           \r\n"
+                     "====================================================\r\n"
+                     "  Enter Password to continue: ");
+            break;
+
+        case UI_STATE_ADMIN_MENU:
+            snprintf(frame, sizeof(frame),
+                     "====================================================\r\n"
+                     "                 ADMIN CONTROL CENTER               \r\n"
+                     "====================================================\r\n"
+                     "  [1] Set Target Temperature\r\n"
+                     "  [2] Sync System Time (Format: HH:MM:SS)\r\n"
+                     "  [3] Sync System Date (Format: YY:MM:DD)\r\n"
+                     "  [4] Reset System Interlocks / Alarm\r\n"
+                     "  [5] Mute Alarm Buzzer\r\n"
+                     "  [6] Logout\r\n"
+                     "====================================================\r\n"
+                     "Admin Option> ");
+            break;
+
+        case UI_STATE_SET_TEMP:
+            snprintf(frame, sizeof(frame),
+                     "\r\n"
+                     "  Enter new Target Temperature (Format: XX.X): ");
+            break;
+
+        case UI_STATE_SET_TIME:
+            snprintf(frame, sizeof(frame),
+                     "\r\n"
+                     "  Enter System Time (Format: HH:MM:SS): ");
+            break;
+
+        case UI_STATE_SET_DATE:
+            snprintf(frame, sizeof(frame),
+                     "\r\n"
+                     "  Enter System Date (Format: YY:MM:DD): ");
+            break;
+    }
+
+    if (showing_feedback && (strlen(frame) + strlen(feedback_message) < 1000)) {
+        char status_footer[128];
+        snprintf(status_footer, sizeof(status_footer), "\r\n[STATUS: %s]", feedback_message);
+        strcat(frame, status_footer);
+    }
+
+    Send_PC(frame);
+}
+
+/* --- Support Utilities --- */
+
+static void Clear_Screen(void) {
+    Send_PC("\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n");
+}
+
+static void Send_PC(const char *str) {
+    HAL_UART_Transmit(huart_pc, (uint8_t*)str, strlen(str), 1000);
+}
+
+static float Custom_Atof(const char *p) {
+    while (*p == ' ') p++;
+    float val = 0.0f;
+    float sign = 1.0f;
+    if (*p == '-') { sign = -1.0f; p++; }
+    else if (*p == '+') { p++; }
+    while (*p >= '0' && *p <= '9') {
+        val = val * 10.0f + (*p - '0');
+        p++;
+    }
+    if (*p == '.') {
+        p++;
+        float divisor = 10.0f;
+        while (*p >= '0' && *p <= '9') {
+            val += (*p - '0') / divisor;
+            divisor *= 10.0f;
+            p++;
+        }
+    }
+    return val * sign;
+}

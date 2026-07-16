@@ -1,0 +1,45 @@
+14:01:28 **** Incremental Build of configuration Release for project Env_Monitor_Board_2 ****
+make -j16 all 
+arm-none-eabi-gcc "../Core/Src/hub.c" -mcpu=cortex-m3 -std=gnu11 -DUSE_HAL_DRIVER -DSTM32F103xB -c -I../Core/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -Os -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/hub.d" -MT"Core/Src/hub.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/hub.o"
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m3 -std=gnu11 -DUSE_HAL_DRIVER -DSTM32F103xB -c -I../Core/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -Os -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/main.o"
+../Core/Src/hub.c: In function 'HUB_Task':
+../Core/Src/hub.c:280:56: warning: '%s' directive output may be truncated writing up to 31 bytes into a region of size 23 [-Wformat-truncation=]
+  280 |             snprintf(tx_cmd, sizeof(tx_cmd), "set_date %s\n", cmd);
+      |                                                        ^~
+In function 'Process_CLI_Command',
+    inlined from 'HUB_Task' at ../Core/Src/hub.c:146:9:
+../Core/Src/hub.c:280:13: note: 'snprintf' output between 11 and 42 bytes into a destination of size 32
+  280 |             snprintf(tx_cmd, sizeof(tx_cmd), "set_date %s\n", cmd);
+      |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../Core/Src/hub.c: In function 'HUB_Task':
+../Core/Src/hub.c:269:56: warning: '%s' directive output may be truncated writing up to 31 bytes into a region of size 23 [-Wformat-truncation=]
+  269 |             snprintf(tx_cmd, sizeof(tx_cmd), "set_time %s\n", cmd);
+      |                                                        ^~
+In function 'Process_CLI_Command',
+    inlined from 'HUB_Task' at ../Core/Src/hub.c:146:9:
+../Core/Src/hub.c:269:13: note: 'snprintf' output between 11 and 42 bytes into a destination of size 32
+  269 |             snprintf(tx_cmd, sizeof(tx_cmd), "set_time %s\n", cmd);
+      |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../Core/Src/hub.c: In function 'HUB_Task':
+../Core/Src/hub.c:258:56: warning: '%s' directive output may be truncated writing up to 31 bytes into a region of size 23 [-Wformat-truncation=]
+  258 |             snprintf(tx_cmd, sizeof(tx_cmd), "set_temp %s\n", cmd);
+      |                                                        ^~
+In function 'Process_CLI_Command',
+    inlined from 'HUB_Task' at ../Core/Src/hub.c:146:9:
+../Core/Src/hub.c:258:13: note: 'snprintf' output between 11 and 42 bytes into a destination of size 32
+  258 |             snprintf(tx_cmd, sizeof(tx_cmd), "set_temp %s\n", cmd);
+      |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+arm-none-eabi-gcc -o "Env_Monitor_Board_2.elf" @"objects.list"   -mcpu=cortex-m3 -T"E:\SMART_FACTORY\subsystems\fire-system\firmware\Env_Monitor_Board_2\STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Env_Monitor_Board_2.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -u _printf_float -u _scanf_float -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: Env_Monitor_Board_2.elf
+ 
+arm-none-eabi-size  Env_Monitor_Board_2.elf 
+arm-none-eabi-objdump -h -S Env_Monitor_Board_2.elf  > "Env_Monitor_Board_2.list"
+   text	   data	    bss	    dec	    hex	filename
+  33188	    496	   2424	  36108	   8d0c	Env_Monitor_Board_2.elf
+arm-none-eabi-objcopy  -O ihex Env_Monitor_Board_2.elf  "Env_Monitor_Board_2.hex"
+Finished building: default.size.stdout
+ 
+Finished building: Env_Monitor_Board_2.hex
+ 
+Finished building: Env_Monitor_Board_2.list
+ 

@@ -1,0 +1,34 @@
+13:58:21 **** Incremental Build of configuration Debug for project Env_Monitor ****
+make -j16 all 
+arm-none-eabi-gcc "../Core/Src/environment.c" -mcpu=cortex-m3 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F103xB -c -I../Core/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/environment.d" -MT"Core/Src/environment.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/environment.o"
+arm-none-eabi-gcc "../Core/Src/liquidcrystal_i2c.c" -mcpu=cortex-m3 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F103xB -c -I../Core/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/liquidcrystal_i2c.d" -MT"Core/Src/liquidcrystal_i2c.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/liquidcrystal_i2c.o"
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m3 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F103xB -c -I../Core/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/main.o"
+../Core/Src/environment.c: In function 'Update_LCD_Display':
+../Core/Src/environment.c:189:68: warning: ':' directive output may be truncated writing 1 byte into a region of size between 0 and 4 [-Wformat-truncation=]
+  189 |     snprintf(lcd_line, sizeof(lcd_line), "[%02d/%02d]     %02d:%02d:%02d",
+      |                                                                    ^
+../Core/Src/environment.c:189:42: note: directive argument in the range [0, 255]
+  189 |     snprintf(lcd_line, sizeof(lcd_line), "[%02d/%02d]     %02d:%02d:%02d",
+      |                                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../Core/Src/environment.c:189:5: note: 'snprintf' output between 21 and 26 bytes into a destination of size 21
+  189 |     snprintf(lcd_line, sizeof(lcd_line), "[%02d/%02d]     %02d:%02d:%02d",
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  190 |              sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
+      |              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+arm-none-eabi-gcc -o "Env_Monitor.elf" @"objects.list"   -mcpu=cortex-m3 -T"E:\SMART_FACTORY\subsystems\fire-system\firmware\Env_Monitor\STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Env_Monitor.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -u _printf_float -u _scanf_float -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: Env_Monitor.elf
+ 
+arm-none-eabi-size  Env_Monitor.elf 
+arm-none-eabi-objdump -h -S Env_Monitor.elf  > "Env_Monitor.list"
+   text	   data	    bss	    dec	    hex	filename
+  44008	    476	   2236	  46720	   b680	Env_Monitor.elf
+arm-none-eabi-objcopy  -O ihex Env_Monitor.elf  "Env_Monitor.hex"
+Finished building: default.size.stdout
+ 
+Finished building: Env_Monitor.hex
+ 
+Finished building: Env_Monitor.list
+ 
+
+13:58:23 Build Finished. 0 errors, 1 warnings. (took 1s.297ms)
+
