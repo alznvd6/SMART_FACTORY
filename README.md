@@ -1,10 +1,10 @@
 # SMART Factory 🏭
 
-> An integrated IoT-driven industrial automation platform for real-time monitoring, safety management, and workforce coordination.
+> An integrated IoT-driven industrial automation platform for real-time monitoring, safety management, and workforce coordination as university project.
 
 ## Overview
 
-SMART Factory is a comprehensive university capstone project that demonstrates a modern Industry 4.0 solution. It integrates hardware sensors, embedded firmware, cloud infrastructure, and intelligent dashboards to enable data-driven decision-making in manufacturing environments.
+SMART Factory is a comprehensive university capstone project that tries to demonstrate a modern Industry 4.0 solution. It integrates hardware sensors, embedded firmware, cloud infrastructure, and intelligent dashboards to enable data-driven decision-making in manufacturing environments.
 
 ## Key Features
 
@@ -12,8 +12,7 @@ SMART Factory is a comprehensive university capstone project that demonstrates a
 - 🚨 **Fire Safety System** – Automated detection and emergency response protocols  
 - ✅ **Quality Control** – Automated inspection and compliance validation
 - 👥 **Workforce Management** – Personnel tracking and shift coordination
-- 📊 **Real-time Dashboards** – Live operational analytics and KPI visualization
-- 📱 **Mobile Access** – Remote monitoring and field-level operations
+- 📊 **Real-time Dashboards** – Live operational analytics
 - 🔔 **Smart Alerts** – Event-driven notifications and escalation
 
 ## Architecture
