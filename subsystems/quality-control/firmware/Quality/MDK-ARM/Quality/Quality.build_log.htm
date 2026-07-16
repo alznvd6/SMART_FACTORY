@@ -1,0 +1,122 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Tool Versions:</h2>
+IDE-Version: µVision V5.43.1.0
+Copyright (C) 2025 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: AmirHossein Asadi, Aria, LIC=NHYH9-4DCW6-PHF89-40C2F-KEDBD-X2HKH
+ 
+Tool Versions:
+Toolchain:       MDK-ARM Professional  Version: 5.43.0.0
+Toolchain Path:  D:\Keil\Keil_5\ARM\ARMCLANG\Bin
+C Compiler:      ArmClang.exe V6.24
+Assembler:       Armasm.exe V6.24
+Linker/Locator:  ArmLink.exe V6.24
+Library Manager: ArmAr.exe V6.24
+Hex Converter:   FromElf.exe V6.24
+CPU DLL:         SARMCM3.DLL V5.43.0.0
+Dialog DLL:      DCM.DLL V1.17.5.0
+Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V3.3.1.0
+Dialog DLL:      TCM.DLL V1.56.6.0
+ 
+<h2>Project:</h2>
+D:\SMART_FACTORY\subsystems\quality-control\firmware\Quality\MDK-ARM\Quality.uvprojx
+Project File Date:  07/16/2026
+
+<h2>Output:</h2>
+*** Using Compiler 'V6.24', folder: 'D:\Keil\Keil_5\ARM\ARMCLANG\Bin'
+Rebuild target 'Quality'
+compiling stm32f1xx_it.c...
+compiling stm32f1xx_hal_rcc_ex.c...
+compiling stm32f1xx_hal_adc_ex.c...
+compiling stm32f1xx_hal_msp.c...
+compiling stm32f1xx_hal_rcc.c...
+compiling stm32f1xx_hal_adc.c...
+compiling stm32f1xx_hal_gpio_ex.c...
+compiling stm32f1xx_hal.c...
+compiling stm32f1xx_hal_exti.c...
+compiling stm32f1xx_hal_gpio.c...
+compiling stm32f1xx_hal_dma.c...
+compiling stm32f1xx_hal_cortex.c...
+compiling stm32f1xx_hal_pwr.c...
+compiling system_stm32f1xx.c...
+compiling stm32f1xx_hal_flash.c...
+compiling stm32f1xx_hal_flash_ex.c...
+../Core/Src/main.c(317): warning: format specifies type 'unsigned long' but the argument has type 'uint32_t' (aka 'unsigned int') [-Wformat]
+  316 |   len = (uint16_t)sprintf(uart_text, "TOTAL=%lu,SALEM=%lu,KHARAB=%lu\r\n",
+      |                                             ~~~
+      |                                             %u
+  317 |                           total_count, salem_count, kharab_count);
+      |                           ^~~~~~~~~~~
+../Core/Src/main.c(317): warning: format specifies type 'unsigned long' but the argument has type 'uint32_t' (aka 'unsigned int') [-Wformat]
+  316 |   len = (uint16_t)sprintf(uart_text, "TOTAL=%lu,SALEM=%lu,KHARAB=%lu\r\n",
+      |                                                       ~~~
+      |                                                       %u
+  317 |                           total_count, salem_count, kharab_count);
+      |                                        ^~~~~~~~~~~
+../Core/Src/main.c(317): warning: format specifies type 'unsigned long' but the argument has type 'uint32_t' (aka 'unsigned int') [-Wformat]
+  316 |   len = (uint16_t)sprintf(uart_text, "TOTAL=%lu,SALEM=%lu,KHARAB=%lu\r\n",
+      |                                                                  ~~~
+      |                                                                  %u
+  317 |                           total_count, salem_count, kharab_count);
+      |                                                     ^~~~~~~~~~~~
+../Core/Src/main.c(440): warning: format specifies type 'unsigned long' but the argument has type 'uint32_t' (aka 'unsigned int') [-Wformat]
+  440 |       sprintf(lcd_text, "TOTAL: %lu          ", total_count);
+      |                                 ~~~             ^~~~~~~~~~~
+      |                                 %u
+../Core/Src/main.c(443): warning: format specifies type 'unsigned long' but the argument has type 'uint32_t' (aka 'unsigned int') [-Wformat]
+  443 |       sprintf(lcd_text, "SALEM:%lu KHARAB:%lu", salem_count, kharab_count);
+      |                                ~~~              ^~~~~~~~~~~
+      |                                %u
+../Core/Src/main.c(443): warning: format specifies type 'unsigned long' but the argument has type 'uint32_t' (aka 'unsigned int') [-Wformat]
+  443 |       sprintf(lcd_text, "SALEM:%lu KHARAB:%lu", salem_count, kharab_count);
+      |                                           ~~~                ^~~~~~~~~~~~
+      |                                           %u
+../Core/Src/main.c(453): warning: format specifies type 'unsigned long' but the argument has type 'uint32_t' (aka 'unsigned int') [-Wformat]
+  453 |       sprintf(lcd_text, "TOTAL: %lu          ", total_count);
+      |                                 ~~~             ^~~~~~~~~~~
+      |                                 %u
+../Core/Src/main.c(456): warning: format specifies type 'unsigned long' but the argument has type 'uint32_t' (aka 'unsigned int') [-Wformat]
+  456 |       sprintf(lcd_text, "SALEM:%lu KHARAB:%lu", salem_count, kharab_count);
+      |                                ~~~              ^~~~~~~~~~~
+      |                                %u
+../Core/Src/main.c(456): warning: format specifies type 'unsigned long' but the argument has type 'uint32_t' (aka 'unsigned int') [-Wformat]
+  456 |       sprintf(lcd_text, "SALEM:%lu KHARAB:%lu", salem_count, kharab_count);
+      |                                           ~~~                ^~~~~~~~~~~~
+      |                                           %u
+9 warnings generated.
+compiling main.c...
+assembling startup_stm32f103xb.s...
+compiling stm32f1xx_hal_uart.c...
+linking...
+Program Size: Code=10936 RO-data=452 RW-data=12 ZI-data=2156  
+FromELF: creating hex file...
+"Quality\Quality.axf" - 0 Error(s), 9 Warning(s).
+
+<h2>Software Packages used:</h2>
+
+Package Vendor: ARM
+                https://www.keil.com/pack/ARM.CMSIS.6.3.0.pack
+                ARM::CMSIS@6.3.0
+                CMSIS (Common Microcontroller Software Interface Standard)
+   * Component: CORE Version: 6.2.0
+
+Package Vendor: Keil
+                https://www.keil.com/pack/Keil.STM32F1xx_DFP.2.4.1.pack
+                Keil::STM32F1xx_DFP@2.4.1
+                STMicroelectronics STM32F1 Series Device Support, Drivers and Examples
+
+<h2>Collection of Component include folders:</h2>
+  ./RTE/_Quality
+  D:/Keil/Arm/Packs/ARM/CMSIS/6.3.0/CMSIS/Core/Include
+  D:/Keil/Arm/Packs/Keil/STM32F1xx_DFP/2.4.1/Device/Include
+
+<h2>Collection of Component Files used:</h2>
+
+   * Component: ARM::CMSIS:CORE@6.2.0
+      Include file:  CMSIS/Core/Include/tz_context.h
+Build Time Elapsed:  00:00:05
+</pre>
+</body>
+</html>
