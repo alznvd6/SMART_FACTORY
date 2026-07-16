@@ -29,10 +29,7 @@ SMART_FACTORY/
 │   ├── monitoring/         # Real-time analytics
 │   └── reports/            # Historical analysis
 ├── mobile-app/             # Field operations interface
-├── infrastructure/         # Backend & deployment
-│   ├── database/           # Data persistence layer
-│   ├── deployment/         # DevOps & containerization
-│   └── notifications/      # Alert routing
+├── datebase/         # Backend & deployment
 ├── shared/                 # Reusable firmware & utilities
 └── docs/                   # Architecture, requirements, UML
 ```
