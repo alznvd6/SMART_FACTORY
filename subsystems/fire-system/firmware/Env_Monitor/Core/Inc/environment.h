@@ -8,18 +8,18 @@
 #ifndef INC_ENVIRONMENT_H_
 #define INC_ENVIRONMENT_H_
 
-#include <lcd_parallel.h>  // For the custom I2C LCD driver
+#include <lcd_parallel.h>
 #include "stm32f1xx_hal.h"
-#include "main.h"               // Provides the CubeMX labels (FAN_Pin, FIRE_1_Pin, etc.)
-#include "rtc.h"                // Cleanly includes RTC handle types at the top
+#include "main.h"
+#include "rtc.h"
 
 #define TARGET_TEMP         25.0f
-#define TOLERANCE_PERCENT   0.20f   // 20% Tolerance
+#define TOLERANCE_PERCENT   0.20f
 
-#define HIGH_TEMP_THRESHOLD (TARGET_TEMP * (1.0f + TOLERANCE_PERCENT)) // 30.0 C
+#define HIGH_TEMP_THRESHOLD (TARGET_TEMP * (1.0f + TOLERANCE_PERCENT))
 
 #define MOVING_AVG_SAMPLES  10
-#define ALARM_LOCK_DURATION_MS 5000 // 5 seconds lock duration
+#define ALARM_LOCK_DURATION_MS 5000
 
 #define FAN_PORT            FAN_GPIO_Port
 #define FAN_PIN             FAN_Pin

@@ -11,9 +11,8 @@
  * Modified for 20x4 Parallel LCD with Custom CGRAM Fire Logo
  */
 
-#include "lcd_parallel.h" // keeps original parallel includes
+#include "lcd_parallel.h"
 
-// Fire icon custom bitmap (5x8 matrix representation)
 static const uint8_t fire_frame_A[8] = {
     0x04,  //    *
     0x04,  //    *
@@ -25,7 +24,6 @@ static const uint8_t fire_frame_A[8] = {
     0x0E   //  ***
 };
 
-// Frame 2: Dynamic flame shape B (Flicker state)
 static const uint8_t fire_frame_B[8] = {
     0x02,  //     *
     0x06,  //    **
@@ -71,7 +69,6 @@ void lcd_send_data(char data) {
  */
 void lcd_create_custom_char(uint8_t loc, const uint8_t *char_map) {
     if (loc < 8) {
-        // CGRAM address starts at 0x40. Each character takes 8 bytes.
         lcd_send_cmd(0x40 + (loc * 8));
         for (int i = 0; i < 8; i++) {
             lcd_send_data(char_map[i]);
@@ -80,7 +77,6 @@ void lcd_create_custom_char(uint8_t loc, const uint8_t *char_map) {
 }
 
 void lcd_init(void) {
-    // 4-bit mode initialization sequence
     HAL_Delay(50);
     lcd_write_nibble(0x03);
     HAL_Delay(5);
@@ -89,7 +85,7 @@ void lcd_init(void) {
     lcd_write_nibble(0x03);
     HAL_Delay(10);
 
-    lcd_write_nibble(0x02); // Set to 4-bit operation mode
+    lcd_write_nibble(0x02);
     HAL_Delay(10);
 
     lcd_send_cmd(0x28);
@@ -101,11 +97,10 @@ void lcd_init(void) {
         lcd_send_cmd(0x01);
         HAL_Delay(2);
 
-    // Write fire logo into CGRAM index 0
         lcd_create_custom_char(0, fire_frame_A);
         lcd_create_custom_char(1, fire_frame_B);
 
-        lcd_send_cmd(0x80); // Clear DDRAM address pointer back to row 0, col 0
+        lcd_send_cmd(0x80);
 }
 
 void lcd_send_string(char *str) {

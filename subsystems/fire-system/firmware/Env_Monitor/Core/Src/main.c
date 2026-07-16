@@ -36,7 +36,28 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+//void Stream_System_Telemetry(void) {
+//    char tx_packet[256];
+//    RTC_TimeTypeDef sTime = {0};
+//    RTC_DateTypeDef sDate = {0};
+//
+//    HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+//    HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+//
+//    float cur_t = (total_samples_collected > 0) ? temp_history[(buffer_index == 0 ? MOVING_AVG_SAMPLES : buffer_index) - 1] : 0.0f; // Derived from core history logic
+//    float avg_t = Get_Average_Temperature();
+//    char fire_msg[15];
+//    uint8_t fire_triggered = (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_3) == GPIO_PIN_SET) ||
+//                             (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4) == GPIO_PIN_SET);
+//
+//    snprintf(tx_packet, sizeof(tx_packet),
+//             "@TIME=%02d:%02d:%02d|DATE=%02d-%02d-%02d|CUR=%.1f|AVG=%.1f|FIRE=%d|LOCK=%d|TARG=%.1f\n",
+//             sTime.Hours, sTime.Minutes, sTime.Seconds,
+//             sDate.Year, sDate.Month, sDate.Date,
+//             cur_t, avg_t, fire_triggered, is_system_locked, target_temp);
+//
+//    HAL_UART_Transmit(&huart1, (uint8_t*)tx_packet, strlen(tx_packet), 200);
+//}
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -47,7 +68,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-extern RTC_HandleTypeDef hrtc; // ایجاد شده توسط کدهای سخت‌افزاری CubeMX
+extern RTC_HandleTypeDef hrtc;
 uint8_t rx_char;
 /* USER CODE END PV */
 
@@ -171,10 +192,8 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
     if (huart->Instance == USART1) {
-        // فرستادن کاراکتر دریافتی به فیلتر پردازشگر کامند ادمین
         ENV_ReceiveHandler(rx_char);
 
-        // فعال‌سازی مجدد و گوش‌به‌زنگ نگه داشتن اینترپت برای کاراکتر بعدی
         HAL_UART_Receive_IT(&huart1, &rx_char, 1);
     }
 }

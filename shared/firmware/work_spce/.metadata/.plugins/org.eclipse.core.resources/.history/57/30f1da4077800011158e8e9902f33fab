@@ -1,0 +1,688 @@
+/* USER CODE BEGIN Header */
+/**
+  ******************************************************************************
+  * @file           : main.c
+  * @brief          : Main program body
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2026 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  */
+/* USER CODE END Header */
+/* Includes ------------------------------------------------------------------*/
+#include "main.h"
+
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
+
+/* USER CODE END Includes */
+
+/* Private typedef -----------------------------------------------------------*/
+/* USER CODE BEGIN PTD */
+
+/* USER CODE END PTD */
+
+/* Private define ------------------------------------------------------------*/
+/* USER CODE BEGIN PD */
+
+/* USER CODE END PD */
+
+/* Private macro -------------------------------------------------------------*/
+/* USER CODE BEGIN PM */
+
+/* USER CODE END PM */
+
+/* Private variables ---------------------------------------------------------*/
+UART_HandleTypeDef huart1;
+UART_HandleTypeDef huart2;
+UART_HandleTypeDef huart3;
+
+/* USER CODE BEGIN PV */
+char remote_temp[10] = "0.0";
+char remote_avg[10] = "0.0";
+char remote_fire[15] = "UNKNOWN";
+char remote_lock[5] = "0";
+
+uint8_t rxByte1; // Buffer for UART1 byte-by-byte receive interrupt
+uint8_t rxByte3; // Buffer for UART3 byte-by-byte receive interrupt
+uint32_t lastDisplayTick = 0;
+
+/* --- Board 2 Local Menu State Machine Config --- */
+typedef enum {
+    HUB_STATE_MAIN_MENU,
+    HUB_STATE_MONITOR_VIEW,
+    HUB_STATE_ADMIN_AUTH,
+    HUB_STATE_ADMIN_MENU
+} HUB_State_t;
+
+static HUB_State_t current_hub_state = HUB_STATE_MAIN_MENU;
+static uint8_t     hub_needs_refresh = 1;
+
+#define HUB_RX_BUF_SIZE 32
+char hub_rx_buffer[HUB_RX_BUF_SIZE];
+static volatile uint8_t hub_rx_index = 0;
+static volatile uint8_t hub_cmd_ready = 0;
+
+/* Standard Function Prototypes */
+void SystemClock_Config(void);
+static void MX_GPIO_Init(void);
+static void MX_USART1_UART_Init(void);
+static void MX_USART2_UART_Init(void);
+static void MX_USART3_UART_Init(void);
+void printRemoteConsole(void);
+void Parse_Telemetry(char *packet);
+
+/* New Local Terminal Feature Prototypes */
+void HUB_Display_Menu(void);
+void HUB_Process_Input(char *input);
+void HUB_ReceiveHandler(uint8_t rx_char);
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
+void SystemClock_Config(void);
+static void MX_GPIO_Init(void);
+static void MX_USART1_UART_Init(void);
+static void MX_USART2_UART_Init(void);
+static void MX_USART3_UART_Init(void);
+/* USER CODE BEGIN PFP */
+
+/* USER CODE END PFP */
+
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
+void printRemoteConsole(void)
+{
+    char uiBuffer[300];
+
+    // Uses ANSI escape codes: \033[H (cursor to home) prevents screen flickering
+    snprintf(uiBuffer, sizeof(uiBuffer),
+             "\033[H"
+             "=========================================\r\n"
+             "   BOARD #2: REMOTE ENVIRONMENTAL MONITOR\r\n"
+             "=========================================\r\n"
+             " * Current Temperature : %s C\r\n"
+             " * Moving Average Temp : %s C\r\n"
+             " * Fire Safety Status  : [%s]\r\n"
+             " * System Interlock    : %s\r\n"
+             "=========================================\r\n"
+             " Connection Status     : ACTIVE (Listening...)\r\n",
+             remote_temp, remote_avg, remote_fire,
+             (strcmp(remote_lock, "1") == 0) ? "!!! LOCKED OUT !!!" : "NORMAL OPERATION");
+
+    HAL_UART_Transmit(&huart2, (uint8_t*)uiBuffer, strlen(uiBuffer), 100);
+}
+
+/* Parse incoming packet: "@TEMP=25.4|AVG=24.8|FIRE=SAFE|LOCK=0" */
+//void Parse_Telemetry(char *packet)
+//{
+//    if (packet[0] != '@') return; // Invalid packet validation
+//
+//    char *token;
+//    // Strip the starting '@'
+//    char *data = &packet[1];
+//
+//    // Split packet using token delimiters '|'
+//    token = strtok(data, "|");
+//    while (token != NULL) {
+//        if (strncmp(token, "TEMP=", 5) == 0) {
+//            strncpy(remote_temp, token + 5, sizeof(remote_temp) - 1);
+//        } else if (strncmp(token, "AVG=", 4) == 0) {
+//            strncpy(remote_avg, token + 4, sizeof(remote_avg) - 1);
+//        } else if (strncmp(token, "FIRE=", 5) == 0) {
+//            strncpy(remote_fire, token + 5, sizeof(remote_fire) - 1);
+//        } else if (strncmp(token, "LOCK=", 5) == 0) {
+//            strncpy(remote_lock, token + 5, sizeof(remote_lock) - 1);
+//        }
+//        token = strtok(NULL, "|");
+//    }
+//
+//    // Refresh display immediately with newly updated data
+//    printRemoteConsole();
+//}
+void HUB_ReceiveHandler(uint8_t rx_char) {
+    // If a command is currently processing in the background loop, skip inputs
+    if (hub_cmd_ready) {
+        return;
+    }
+
+    // Echo masking: Hide password characters with asterisks
+    if (current_hub_state == HUB_STATE_ADMIN_AUTH) {
+        char asterisk = '*';
+        if (rx_char != '\r' && rx_char != '\b' && rx_char != 127) {
+            HAL_UART_Transmit(&huart3, (uint8_t*)&asterisk, 1, 10);
+        }
+    } else {
+        // Normal text echo feedback back to Virtual Terminal
+        if (rx_char != '\r' && rx_char != '\b' && rx_char != 127) {
+            HAL_UART_Transmit(&huart3, &rx_char, 1, 10);
+        }
+    }
+
+    // Process input on carriage return
+    if (rx_char == '\r') {
+        hub_rx_buffer[hub_rx_index] = '\0';
+        hub_cmd_ready = 1;
+    }
+    // Handle manual text backspaces inside Proteus nicely
+    else if (rx_char == '\b' || rx_char == 127) {
+        if (hub_rx_index > 0) {
+            hub_rx_index--;
+            hub_rx_buffer[hub_rx_index] = '\0';
+            char *backspace_seq = "\b \b";
+            HAL_UART_Transmit(&huart3, (uint8_t*)backspace_seq, 3, 10);
+        }
+    }
+    // Store non-control characters into buffer
+    else if (hub_rx_index < (HUB_RX_BUF_SIZE - 1)) {
+        hub_rx_buffer[hub_rx_index++] = (char)rx_char;
+    }
+}
+
+/**
+ * @brief Renders the visual menu interface directly to USART3's Virtual Terminal
+ */
+void HUB_Display_Menu(void) {
+    char menuBuffer[400];
+
+    // Send an ANSI clear terminal screen escape sequence
+    HAL_UART_Transmit(&huart3, (uint8_t*)"\033[2J\033[H", 6, 100);
+
+    switch (current_hub_state) {
+        case HUB_STATE_MAIN_MENU:
+            snprintf(menuBuffer, sizeof(menuBuffer),
+                     "=========================================\r\n"
+                     "      BOARD #2: CENTRAL CONTROL HUB      \r\n"
+                     "=========================================\r\n"
+                     " > 1. View Live Factory Feed\r\n"
+                     " > 2. Enter Privileged Administration\r\n"
+                     "=========================================\r\n"
+                     "Enter Selection: ");
+            break;
+
+        case HUB_STATE_MONITOR_VIEW:
+            snprintf(menuBuffer, sizeof(menuBuffer),
+                     "=========================================\r\n"
+                     "       LIVE HUB DATA MONITOR VIEW        \r\n"
+                     "=========================================\r\n"
+                     " * Current Temperature : %s C\r\n"
+                     " * Moving Average Temp : %s C\r\n"
+                     " * Fire Safety Status  : [%s]\r\n"
+                     " * System Interlock    : %s\r\n"
+                     "=========================================\r\n"
+                     " > Press '0' to return to Main Menu\r\n\r\n"
+                     "Selection: ",
+                     remote_temp, remote_avg, remote_fire,
+                     (strcmp(remote_lock, "1") == 0) ? "!!! LOCKED OUT !!!" : "NORMAL OPERATION");
+            break;
+
+        case HUB_STATE_ADMIN_AUTH:
+            snprintf(menuBuffer, sizeof(menuBuffer),
+                     "=========================================\r\n"
+                     "        SECURE HUB AUTHENTICATION        \r\n"
+                     "=========================================\r\n"
+                     " Please enter Admin Password:\r\n"
+                     " (Or type '0' to abort selection)\r\n"
+                     "=========================================\r\n"
+                     "Password: ");
+            break;
+
+        case HUB_STATE_ADMIN_MENU:
+            snprintf(menuBuffer, sizeof(menuBuffer),
+                     "=========================================\r\n"
+                     "       HUB ADMINISTRATIVE COMMANDS       \r\n"
+                     "=========================================\r\n"
+                     " Available Actions:\r\n"
+                     "  > Type 'clear_logs' - Reset local structures\r\n"
+                     "  > Type '0'          - Relock and logout\r\n"
+                     "=========================================\r\n"
+                     "Command: ");
+            break;
+    }
+
+    HAL_UART_Transmit(&huart3, (uint8_t*)menuBuffer, strlen(menuBuffer), 200);
+}
+
+/**
+ * @brief Evaluates finalized command entry strings from the console
+ */
+void HUB_Process_Input(char *input) {
+    // Shared escape logic: '0' safely defaults back to main page
+    if (strcmp(input, "0") == 0) {
+        current_hub_state = HUB_STATE_MAIN_MENU;
+        hub_needs_refresh = 1;
+        return;
+    }
+
+    switch (current_hub_state) {
+        case HUB_STATE_MAIN_MENU:
+            if (strcmp(input, "1") == 0) {
+                current_hub_state = HUB_STATE_MONITOR_VIEW;
+            } else if (strcmp(input, "2") == 0) {
+                current_hub_state = HUB_STATE_ADMIN_AUTH;
+            } else {
+                HAL_UART_Transmit(&huart3, (uint8_t*)"\r\nInvalid option!", 17, 100);
+                HAL_Delay(800);
+            }
+            hub_needs_refresh = 1;
+            break;
+
+        case HUB_STATE_MONITOR_VIEW:
+            hub_needs_refresh = 1;
+            break;
+
+        case HUB_STATE_ADMIN_AUTH:
+            if (strcmp(input, "2222") == 0) { // Custom Admin Password for Board #2
+                current_hub_state = HUB_STATE_ADMIN_MENU;
+            } else {
+                HAL_UART_Transmit(&huart3, (uint8_t*)"\r\n[ACCESS DENIED] Incorrect!", 28, 100);
+                HAL_Delay(1000);
+                current_hub_state = HUB_STATE_MAIN_MENU;
+            }
+            hub_needs_refresh = 1;
+            break;
+
+        case HUB_STATE_ADMIN_MENU:
+            if (strcmp(input, "clear_logs") == 0) {
+                HAL_UART_Transmit(&huart3, (uint8_t*)"\r\n[SUCCESS] Local Hub structures cleared.", 41, 100);
+                HAL_Delay(1000);
+            } else {
+                HAL_UART_Transmit(&huart3, (uint8_t*)"\r\nUnknown Command!", 18, 100);
+                HAL_Delay(800);
+            }
+            hub_needs_refresh = 1;
+            break;
+    }
+}
+void Parse_Telemetry(char *packet)
+{
+    // 1. Basic validation: ensure it's a legitimate telemetry packet starting with '@'
+    if (packet == NULL || packet[0] != '@') {
+        return;
+    }
+
+    // 2. Stream the raw string over USART2 (to COMPIM -> Python) with a newline
+    char forward_buf[128];
+    int len = snprintf(forward_buf, sizeof(forward_buf), "%s\n", packet);
+    if (len > 0 && len < (int)sizeof(forward_buf)) {
+        HAL_UART_Transmit(&huart2, (uint8_t*)forward_buf, (uint16_t)len, 100);
+    }
+
+    // 3. Local Hardware Parsing: Extract named key-value fields safely
+    char *ptr = packet;
+    while (ptr != NULL && *ptr != '\0') {
+        // Skip any leading delimiter characters
+        if (*ptr == '@' || *ptr == '|') {
+            ptr++;
+            continue;
+        }
+
+        // Catch and map the specific keys matched to Board #1's stream format
+        if (strncmp(ptr, "CUR=", 4) == 0) {
+            ptr += 4;
+            int i = 0;
+            while (*ptr != '|' && *ptr != '\0' && i < (int)sizeof(remote_temp) - 1) {
+                remote_temp[i++] = *ptr++;
+            }
+            remote_temp[i] = '\0';
+        }
+        else if (strncmp(ptr, "AVG=", 4) == 0) {
+            ptr += 4;
+            int i = 0;
+            while (*ptr != '|' && *ptr != '\0' && i < (int)sizeof(remote_avg) - 1) {
+                remote_avg[i++] = *ptr++;
+            }
+            remote_avg[i] = '\0';
+        }
+        else if (strncmp(ptr, "FIRE=", 5) == 0) {
+            ptr += 5;
+            // Map 1 -> HAZARD, 0 -> CLEAR
+            if (*ptr == '1') {
+                strncpy(remote_fire, "HAZARD ALERT", sizeof(remote_fire) - 1);
+            } else {
+                strncpy(remote_fire, "CLEAR", sizeof(remote_fire) - 1);
+            }
+            // Move pointer past the value
+            while (*ptr != '|' && *ptr != '\0') ptr++;
+        }
+        else if (strncmp(ptr, "LOCK=", 5) == 0) {
+            ptr += 5;
+            remote_lock[0] = *ptr;
+            remote_lock[1] = '\0';
+            while (*ptr != '|' && *ptr != '\0') ptr++;
+        }
+        else {
+            // Advance pointer to avoid getting stuck on unknown parameter tags
+            while (*ptr != '|' && *ptr != '\0') {
+                ptr++;
+            }
+        }
+    }
+}
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    // Channel A: Communication incoming from Board #1
+    if (huart->Instance == USART1)
+    {
+        static char rxBuffer[100];
+        static uint8_t rxIndex = 0;
+
+        if (rxByte1 == '\n' || rxByte1 == '\r')
+        {
+            if (rxIndex > 0)
+            {
+                rxBuffer[rxIndex] = '\0';
+                Parse_Telemetry(rxBuffer);
+                rxIndex = 0;
+            }
+        }
+        else if (rxIndex < sizeof(rxBuffer) - 1)
+        {
+            rxBuffer[rxIndex++] = (char)rxByte1;
+        }
+
+        // Re-arm interrupt for next byte from Board #1
+        HAL_UART_Receive_IT(&huart1, &rxByte1, 1);
+    }
+
+    // Channel B: User Keystrokes from Local Virtual Terminal
+    else if (huart->Instance == USART3)
+    {
+        HUB_ReceiveHandler(rxByte3);
+
+        // Re-arm interrupt for next byte from Virtual Terminal #2
+        HAL_UART_Receive_IT(&huart3, &rxByte3, 1);
+    }
+}
+/* USER CODE END 0 */
+
+/**
+  * @brief  The application entry point.
+  * @retval int
+  */
+int main(void)
+{
+
+  /* USER CODE BEGIN 1 */
+
+  /* USER CODE END 1 */
+
+  /* MCU Configuration--------------------------------------------------------*/
+
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
+
+  /* USER CODE BEGIN Init */
+
+  /* USER CODE END Init */
+
+  /* Configure the system clock */
+  SystemClock_Config();
+
+  /* USER CODE BEGIN SysInit */
+
+  /* USER CODE END SysInit */
+
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_USART1_UART_Init();
+  MX_USART2_UART_Init();
+  MX_USART3_UART_Init();
+  /* USER CODE BEGIN 2 */
+  /* USER CODE BEGIN 2 */
+    char clearScreen[] = "\033[2J\033[H";
+    HAL_UART_Transmit(&huart2, (uint8_t*)clearScreen, strlen(clearScreen), HAL_MAX_DELAY);
+
+    // Clear the screen of your new local Virtual Terminal on startup
+    HAL_UART_Transmit(&huart3, (uint8_t*)clearScreen, strlen(clearScreen), HAL_MAX_DELAY);
+
+    // Start listening to both lines via non-blocking interrupts
+    HAL_UART_Receive_IT(&huart1, &rxByte1, 1);
+    HAL_UART_Receive_IT(&huart3, &rxByte3, 1); // <--- Added to track local shell
+
+    hub_needs_refresh = 1;
+    /* USER CODE END 2 */
+
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+  while (1)
+
+  {
+	  uint32_t current_tick = HAL_GetTick();
+
+	        // 1. Asynchronously refresh standard desktop console over USART2
+	        if (current_tick - lastDisplayTick >= 1500)
+	        {
+	            lastDisplayTick = current_tick;
+	            printRemoteConsole();
+
+	            // If user is inside the monitor screen, update the VT3 screen with new values
+	            if (current_hub_state == HUB_STATE_MONITOR_VIEW) {
+	                hub_needs_refresh = 1;
+	            }
+	        }
+
+	        // 2. Process complete command strings collected from USART3
+	        if (hub_cmd_ready) {
+	            HUB_Process_Input(hub_rx_buffer);
+
+	            hub_rx_index = 0;
+	            memset(hub_rx_buffer, 0, HUB_RX_BUF_SIZE);
+	            hub_cmd_ready = 0;
+	        }
+
+	        // 3. Redraw menu UI panel if a flag condition changed state
+	        if (hub_needs_refresh) {
+	            HUB_Display_Menu();
+	            hub_needs_refresh = 0;
+	        }
+
+//	  if (HAL_GetTick() - lastDisplayTick >= 1500)
+//	        {
+//	            lastDisplayTick = HAL_GetTick();
+//	            printRemoteConsole();
+//	        }
+
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
+
+  }
+  /* USER CODE END 3 */
+}
+
+/**
+  * @brief System Clock Configuration
+  * @retval None
+  */
+void SystemClock_Config(void)
+{
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+
+  /** Initializes the RCC Oscillators according to the specified parameters
+  * in the RCC_OscInitTypeDef structure.
+  */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Initializes the CPU, AHB and APB buses clocks
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
+
+/**
+  * @brief USART1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART1_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART1_Init 0 */
+
+  /* USER CODE END USART1_Init 0 */
+
+  /* USER CODE BEGIN USART1_Init 1 */
+
+  /* USER CODE END USART1_Init 1 */
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 9600;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART1_Init 2 */
+
+  /* USER CODE END USART1_Init 2 */
+
+}
+
+/**
+  * @brief USART2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART2_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART2_Init 0 */
+
+  /* USER CODE END USART2_Init 0 */
+
+  /* USER CODE BEGIN USART2_Init 1 */
+
+  /* USER CODE END USART2_Init 1 */
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 9600;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART2_Init 2 */
+
+  /* USER CODE END USART2_Init 2 */
+
+}
+
+/**
+  * @brief USART3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART3_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART3_Init 0 */
+
+  /* USER CODE END USART3_Init 0 */
+
+  /* USER CODE BEGIN USART3_Init 1 */
+
+  /* USER CODE END USART3_Init 1 */
+  huart3.Instance = USART3;
+  huart3.Init.BaudRate = 9600;
+  huart3.Init.WordLength = UART_WORDLENGTH_8B;
+  huart3.Init.StopBits = UART_STOPBITS_1;
+  huart3.Init.Parity = UART_PARITY_NONE;
+  huart3.Init.Mode = UART_MODE_TX_RX;
+  huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart3.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART3_Init 2 */
+
+  /* USER CODE END USART3_Init 2 */
+
+}
+
+/**
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_GPIO_Init(void)
+{
+  /* USER CODE BEGIN MX_GPIO_Init_1 */
+
+  /* USER CODE END MX_GPIO_Init_1 */
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /* USER CODE BEGIN MX_GPIO_Init_2 */
+
+  /* USER CODE END MX_GPIO_Init_2 */
+}
+
+/* USER CODE BEGIN 4 */
+
+/* USER CODE END 4 */
+
+/**
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
+void Error_Handler(void)
+{
+  /* USER CODE BEGIN Error_Handler_Debug */
+  /* User can add his own implementation to report the HAL error return state */
+  __disable_irq();
+  while (1)
+  {
+  }
+  /* USER CODE END Error_Handler_Debug */
+}
+#ifdef USE_FULL_ASSERT
+/**
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
+void assert_failed(uint8_t *file, uint32_t line)
+{
+  /* USER CODE BEGIN 6 */
+  /* User can add his own implementation to report the file name and line number,
+     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+  /* USER CODE END 6 */
+}
+#endif /* USE_FULL_ASSERT */

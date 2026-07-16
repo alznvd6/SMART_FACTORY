@@ -2,64 +2,24 @@
 /**
   ******************************************************************************
   * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2026 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
+  * @brief          : Main program body for Board #2 (Central Hub)
   ******************************************************************************
   */
 /* USER CODE END Header */
+
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "main.h"
-#include <stdio.h>
-#include <string.h>
-
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
-
-/* USER CODE END Includes */
-
-/* Private typedef -----------------------------------------------------------*/
-/* USER CODE BEGIN PTD */
-
-/* USER CODE END PTD */
-
-/* Private define ------------------------------------------------------------*/
-/* USER CODE BEGIN PD */
-
-/* USER CODE END PD */
-
-/* Private macro -------------------------------------------------------------*/
-/* USER CODE BEGIN PM */
-
-/* USER CODE END PM */
+#include "hub.h"
 
 /* Private variables ---------------------------------------------------------*/
-UART_HandleTypeDef huart1;
-UART_HandleTypeDef huart2;
+UART_HandleTypeDef huart1; // Connection to Board #1
+UART_HandleTypeDef huart2; // Connection to Python/COMPIM
+UART_HandleTypeDef huart3; // Connection to PC CLI Terminal
 
 /* USER CODE BEGIN PV */
-char remote_temp[10] = "0.0";
-char remote_avg[10] = "0.0";
-char remote_fire[15] = "UNKNOWN";
-char remote_lock[5] = "0";
-
-uint8_t rxByte1; // Buffer for UART1 byte-by-byte receive interrupt
-uint32_t lastDisplayTick = 0;
-void SystemClock_Config(void);
-static void MX_GPIO_Init(void);
-static void MX_USART1_UART_Init(void);
-static void MX_USART2_UART_Init(void);
-void printRemoteConsole(void);
-void Parse_Telemetry(char *packet);
+uint8_t rxByte1; // Buffer for UART1 (Board #1 Telemetry) byte-by-byte receive interrupt
+uint8_t rxByte2; // Buffer for UART2 (Python/COMPIM) byte-by-byte receive interrupt
+uint8_t rxByte3; // Buffer for UART3 (PC Terminal CLI) byte-by-byte receive interrupt
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -67,104 +27,55 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
-/* USER CODE BEGIN PFP */
+static void MX_USART3_UART_Init(void);
 
-/* USER CODE END PFP */
-
-/* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void printRemoteConsole(void)
-{
-    char uiBuffer[300];
 
-    // Uses ANSI escape codes: \033[H (cursor to home) prevents screen flickering
-    snprintf(uiBuffer, sizeof(uiBuffer),
-             "\033[H"
-             "=========================================\r\n"
-             "   BOARD #2: REMOTE ENVIRONMENTAL MONITOR\r\n"
-             "=========================================\r\n"
-             " * Current Temperature : %s C\r\n"
-             " * Moving Average Temp : %s C\r\n"
-             " * Fire Safety Status  : [%s]\r\n"
-             " * System Interlock    : %s\r\n"
-             "=========================================\r\n"
-             " Connection Status     : ACTIVE (Listening...)\r\n",
-             remote_temp, remote_avg, remote_fire,
-             (strcmp(remote_lock, "1") == 0) ? "!!! LOCKED OUT !!!" : "NORMAL OPERATION");
-
-    HAL_UART_Transmit(&huart2, (uint8_t*)uiBuffer, strlen(uiBuffer), 100);
-}
-
-/* Parse incoming packet: "@TEMP=25.4|AVG=24.8|FIRE=SAFE|LOCK=0" */
-//void Parse_Telemetry(char *packet)
+/**
+ * @brief Rx Transfer completed callbacks in non-blocking Interrupt Mode
+ */
+//void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 //{
-//    if (packet[0] != '@') return; // Invalid packet validation
+//    if (huart->Instance == USART1)
+//    {
+//        HUB_ReceiveHandler(rxByte1, 1);
 //
-//    char *token;
-//    // Strip the starting '@'
-//    char *data = &packet[1];
-//
-//    // Split packet using token delimiters '|'
-//    token = strtok(data, "|");
-//    while (token != NULL) {
-//        if (strncmp(token, "TEMP=", 5) == 0) {
-//            strncpy(remote_temp, token + 5, sizeof(remote_temp) - 1);
-//        } else if (strncmp(token, "AVG=", 4) == 0) {
-//            strncpy(remote_avg, token + 4, sizeof(remote_avg) - 1);
-//        } else if (strncmp(token, "FIRE=", 5) == 0) {
-//            strncpy(remote_fire, token + 5, sizeof(remote_fire) - 1);
-//        } else if (strncmp(token, "LOCK=", 5) == 0) {
-//            strncpy(remote_lock, token + 5, sizeof(remote_lock) - 1);
-//        }
-//        token = strtok(NULL, "|");
+//        HAL_UART_Receive_IT(&huart1, &rxByte1, 1);
 //    }
+//    else if (huart->Instance == USART3)
+//    {
+//        HUB_ReceiveHandler(rxByte3, 3);
 //
-//    // Refresh display immediately with newly updated data
-//    printRemoteConsole();
+//        HAL_UART_Receive_IT(&huart3, &rxByte3, 1);
+//    }
+//    else if (huart->Instance == USART2) // Incoming from Python
+//    {
+////    	HUB_ReceiveHandler(rxByte2, 3);
+////    	HAL_UART_Receive_IT(&huart2, &rxByte2, 1);
+//        HAL_UART_Transmit(&huart1, &rxByte2, 1, 10);
+//
+//        HAL_UART_Receive_IT(&huart2, &rxByte2, 1);
+//    }
 //}
-void Parse_Telemetry(char *packet)
-{
-    // 1. Basic validation: ensure it's a legitimate telemetry packet starting with '@'
-    if (packet == NULL || packet[0] != '@') {
-        return;
-    }
-
-    // 2. Prepare a transit buffer to append a newline '\n'
-    // This acts as the frame terminator so Python's readline() knows the packet is complete.
-    char forward_buf[128];
-
-    // snprintf safely formats the string and guarantees null-termination
-    int len = snprintf(forward_buf, sizeof(forward_buf), "%s\n", packet);
-
-    // 3. Directly stream the raw string over USART2 (to COMPIM -> Python)
-    if (len > 0 && len < (int)sizeof(forward_buf)) {
-        HAL_UART_Transmit(&huart2, (uint8_t*)forward_buf, (uint16_t)len, 100);
-    }
-}
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
     if (huart->Instance == USART1)
     {
-        static char rxBuffer[100];
-        static uint8_t rxIndex = 0;
-
-        // Packet complete on newline
-        if (rxByte1 == '\n' || rxByte1 == '\r')
-        {
-            if (rxIndex > 0)
-            {
-                rxBuffer[rxIndex] = '\0';
-                Parse_Telemetry(rxBuffer);
-                rxIndex = 0;
-            }
-        }
-        else if (rxIndex < sizeof(rxBuffer) - 1)
-        {
-            rxBuffer[rxIndex++] = (char)rxByte1;
-        }
-
-        // Re-arm interrupt for next byte
+        HUB_ReceiveHandler(rxByte1, 1);
         HAL_UART_Receive_IT(&huart1, &rxByte1, 1);
+    }
+    else if (huart->Instance == USART3)
+    {
+        HUB_ReceiveHandler(rxByte3, 3);
+        HAL_UART_Receive_IT(&huart3, &rxByte3, 1);
+    }
+    else if (huart->Instance == USART2)
+    {
+
+        HUB_ReceiveHandler(rxByte2, 3);
+
+        // Re-arm interrupt for Python UART
+        HAL_UART_Receive_IT(&huart2, &rxByte2, 1);
     }
 }
 /* USER CODE END 0 */
@@ -175,54 +86,37 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   */
 int main(void)
 {
-
-  /* USER CODE BEGIN 1 */
-
-  /* USER CODE END 1 */
-
   /* MCU Configuration--------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-
-  /* USER CODE BEGIN Init */
-
-  /* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();
-
-  /* USER CODE BEGIN SysInit */
-
-  /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
+  MX_USART3_UART_Init();
+
   /* USER CODE BEGIN 2 */
-  char clearScreen[] = "\033[2J\033[H";
-    HAL_UART_Transmit(&huart2, (uint8_t*)clearScreen, strlen(clearScreen), HAL_MAX_DELAY);
+  // Initialize Central Hub
+  HUB_Init(&huart1, &huart3, &huart2);
 
-    // Start listening to Board 1 transmissions via interrupt
-    HAL_UART_Receive_IT(&huart1, &rxByte1, 1);
-
+  HAL_UART_Receive_IT(&huart1, &rxByte1, 1);
+  HAL_UART_Receive_IT(&huart2, &rxByte2, 1);
+  HAL_UART_Receive_IT(&huart3, &rxByte3, 1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  if (HAL_GetTick() - lastDisplayTick >= 1500)
-	        {
-	            lastDisplayTick = HAL_GetTick();
-	            printRemoteConsole();
-	        }
+      // Non-blocking UI task handling updates, terminal input, and feedback timers
+      HUB_Task();
 
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
   }
   /* USER CODE END 3 */
 }
@@ -236,9 +130,6 @@ void SystemClock_Config(void)
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-  /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
@@ -248,8 +139,6 @@ void SystemClock_Config(void)
     Error_Handler();
   }
 
-  /** Initializes the CPU, AHB and APB buses clocks
-  */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
@@ -265,19 +154,9 @@ void SystemClock_Config(void)
 
 /**
   * @brief USART1 Initialization Function
-  * @param None
-  * @retval None
   */
 static void MX_USART1_UART_Init(void)
 {
-
-  /* USER CODE BEGIN USART1_Init 0 */
-
-  /* USER CODE END USART1_Init 0 */
-
-  /* USER CODE BEGIN USART1_Init 1 */
-
-  /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
   huart1.Init.BaudRate = 9600;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
@@ -290,27 +169,13 @@ static void MX_USART1_UART_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN USART1_Init 2 */
-
-  /* USER CODE END USART1_Init 2 */
-
 }
 
 /**
   * @brief USART2 Initialization Function
-  * @param None
-  * @retval None
   */
 static void MX_USART2_UART_Init(void)
 {
-
-  /* USER CODE BEGIN USART2_Init 0 */
-
-  /* USER CODE END USART2_Init 0 */
-
-  /* USER CODE BEGIN USART2_Init 1 */
-
-  /* USER CODE END USART2_Init 1 */
   huart2.Instance = USART2;
   huart2.Init.BaudRate = 9600;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
@@ -323,62 +188,40 @@ static void MX_USART2_UART_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN USART2_Init 2 */
+}
 
-  /* USER CODE END USART2_Init 2 */
-
+/**
+  * @brief USART3 Initialization Function
+  */
+static void MX_USART3_UART_Init(void)
+{
+  huart3.Instance = USART3;
+  huart3.Init.BaudRate = 9600;
+  huart3.Init.WordLength = UART_WORDLENGTH_8B;
+  huart3.Init.StopBits = UART_STOPBITS_1;
+  huart3.Init.Parity = UART_PARITY_NONE;
+  huart3.Init.Mode = UART_MODE_TX_RX;
+  huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart3.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart3) != HAL_OK)
+  {
+    Error_Handler();
+  }
 }
 
 /**
   * @brief GPIO Initialization Function
-  * @param None
-  * @retval None
   */
 static void MX_GPIO_Init(void)
 {
-  /* USER CODE BEGIN MX_GPIO_Init_1 */
-
-  /* USER CODE END MX_GPIO_Init_1 */
-
-  /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
-
-  /* USER CODE BEGIN MX_GPIO_Init_2 */
-
-  /* USER CODE END MX_GPIO_Init_2 */
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 }
 
-/* USER CODE BEGIN 4 */
-
-/* USER CODE END 4 */
-
-/**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
 void Error_Handler(void)
 {
-  /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
   while (1)
   {
   }
-  /* USER CODE END Error_Handler_Debug */
 }
-#ifdef USE_FULL_ASSERT
-/**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
-void assert_failed(uint8_t *file, uint32_t line)
-{
-  /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-  /* USER CODE END 6 */
-}
-#endif /* USE_FULL_ASSERT */

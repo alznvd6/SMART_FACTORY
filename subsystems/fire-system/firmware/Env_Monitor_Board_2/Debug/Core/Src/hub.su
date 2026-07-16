@@ -1,0 +1,3 @@
+../Core/Src/hub.c:30:6:HUB_Init	16	static
+../Core/Src/hub.c:56:6:HUB_Task	8	static
+../Core/Src/hub.c:75:13:Parse_Telemetry_Packet	64	static
