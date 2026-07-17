@@ -49,10 +49,10 @@ typedef struct
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define PRODUCT_SALEM   1
-#define PRODUCT_KHARAB  0
-#define WEIGHT_MIN_ADC   400
-#define WEIGHT_MAX_ADC   700
+#define PRODUCT_PASS    1
+#define PRODUCT_REJECT  0
+#define WEIGHT_MIN_ADC   100
+#define WEIGHT_MAX_ADC   3000
 #define COLOR_OK_STATE   GPIO_PIN_SET
 /* USER CODE END PD */
 
@@ -73,11 +73,11 @@ uint8_t motion_flag = 0;
 uint8_t product_busy = 0;
 
 uint32_t total_count = 0;
-uint32_t salem_count = 0;
-uint32_t kharab_count = 0;
+uint32_t pass_count = 0;
+uint32_t reject_count = 0;
 
 uint8_t last_product_valid = 0;
-uint8_t last_product_status = PRODUCT_KHARAB;
+uint8_t last_product_status = PRODUCT_REJECT;
 
 uint16_t adc_value = 0;
 uint8_t color_value = 0;
@@ -218,11 +218,11 @@ void System_ResetAllData(void)
   uint8_t i;
 
   total_count = 0;
-  salem_count = 0;
-  kharab_count = 0;
+  pass_count = 0;
+  reject_count = 0;
 
   last_product_valid = 0;
-  last_product_status = PRODUCT_KHARAB;
+  last_product_status = PRODUCT_REJECT;
 
   motion_flag = 0;
   product_busy = 0;
@@ -241,7 +241,7 @@ void System_ResetAllData(void)
   for(i = 0; i < HISTORY_SIZE; i++)
   {
     history[i].valid = 0;
-    history[i].status = PRODUCT_KHARAB;
+    history[i].status = PRODUCT_REJECT;
     history[i].hour = 0;
     history[i].minute = 0;
     history[i].second = 0;
@@ -284,6 +284,7 @@ uint8_t Check_ProductStatus(void)
   uint8_t color_ok;
 
   HAL_ADC_Start(&hadc1);
+	HAL_Delay(2);
   HAL_ADC_PollForConversion(&hadc1, 20);
   adc_value = HAL_ADC_GetValue(&hadc1);
   HAL_ADC_Stop(&hadc1);
@@ -301,9 +302,9 @@ uint8_t Check_ProductStatus(void)
     color_ok = 0;
 
   if((weight_ok == 1) && (color_ok == 1))
-    return PRODUCT_SALEM;
+    return PRODUCT_PASS;
   else
-    return PRODUCT_KHARAB;
+    return PRODUCT_REJECT;
 }
 
 
@@ -313,8 +314,8 @@ void Send_UART_Report(void)
   uint8_t i;
   uint8_t index;
 
-  len = (uint16_t)sprintf(uart_text, "TOTAL=%lu,SALEM=%lu,KHARAB=%lu\r\n",
-                          total_count, salem_count, kharab_count);
+  len = (uint16_t)sprintf(uart_text, "TOTAL=%lu,PASS=%lu,REJECT=%lu\r\n",
+                          total_count, pass_count, reject_count);
   HAL_UART_Transmit(&huart2, (uint8_t*)uart_text, len, 200);
 
   len = (uint16_t)sprintf(uart_text, "LAST20:\r\n");
@@ -328,7 +329,7 @@ void Send_UART_Report(void)
     {
       len = (uint16_t)sprintf(uart_text, "%02d) %s %02d:%02d:%02d\r\n",
                               i + 1,
-                              (history[index].status == PRODUCT_SALEM) ? "SALEM" : "KHARAB",
+                              (history[index].status == PRODUCT_PASS) ? "PASS" : "REJECT",
                               history[index].hour,
                               history[index].minute,
                               history[index].second);
@@ -345,14 +346,13 @@ void Process_Product(void)
   product_busy = 1;
 
   status = Check_ProductStatus();
-
   total_count++;
   last_product_valid = 1;
   last_product_status = status;
 
-  if(status == PRODUCT_SALEM)
+  if(status == PRODUCT_PASS)
   {
-    salem_count++;
+    pass_count++;
     HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_RESET);
 
@@ -361,7 +361,7 @@ void Process_Product(void)
   }
   else
   {
-    kharab_count++;
+    reject_count++;
     HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_SET);
 
@@ -374,11 +374,11 @@ void Process_Product(void)
   }
 
   Save_History(status);
-	sprintf(uart_text, "ADC=%u COLOR=%u STATUS=%s\r\n",
+  sprintf(uart_text, "ADC=%u COLOR=%u STATUS=%s\r\n",
         adc_value,
         color_value,
-        (status == PRODUCT_SALEM) ? "SALEM" : "KHARAB");
-	HAL_UART_Transmit(&huart2, (uint8_t*)uart_text, strlen(uart_text), 200);
+        (status == PRODUCT_PASS) ? "PASS" : "REJECT");
+  HAL_UART_Transmit(&huart2, (uint8_t*)uart_text, strlen(uart_text), 200);
 
   Send_UART_Report();
 
@@ -395,7 +395,7 @@ void Update_Relay(void)
   {
     if(relay_phase == 1)
     {
-      if((HAL_GetTick() - relay_tick) >= 5000)
+      if((HAL_GetTick() - relay_tick) >= 500)
       {
         HAL_GPIO_WritePin(RELAY_FWD_GPIO_Port, RELAY_FWD_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(RELAY_REV_GPIO_Port, RELAY_REV_Pin, GPIO_PIN_SET);
@@ -406,7 +406,7 @@ void Update_Relay(void)
     }
     else if(relay_phase == 2)
     {
-      if((HAL_GetTick() - relay_tick) >= 300)
+      if((HAL_GetTick() - relay_tick) >= 800)
       {
         HAL_GPIO_WritePin(RELAY_FWD_GPIO_Port, RELAY_FWD_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(RELAY_REV_GPIO_Port, RELAY_REV_Pin, GPIO_PIN_RESET);
@@ -429,7 +429,7 @@ void Update_LCD(void)
     case LCD_STATE_OFF:
       LCD_PrintLine(0, "TIME 00:00:00       ");
       LCD_PrintLine(1, "TOTAL: 0            ");
-      LCD_PrintLine(2, "SALEM:0 KHARAB:0    ");
+      LCD_PrintLine(2, "PASS:0 REJECT:0     ");
       LCD_PrintLine(3, "SYSTEM OFF          ");
       break;
 
@@ -440,7 +440,7 @@ void Update_LCD(void)
       sprintf(lcd_text, "TOTAL: %lu          ", total_count);
       LCD_PrintLine(1, lcd_text);
 
-      sprintf(lcd_text, "SALEM:%lu KHARAB:%lu", salem_count, kharab_count);
+      sprintf(lcd_text, "PASS:%lu REJECT:%lu", pass_count, reject_count);
       LCD_PrintLine(2, lcd_text);
 
       LCD_PrintLine(3, "WAITING PRODUCT     ");
@@ -453,15 +453,25 @@ void Update_LCD(void)
       sprintf(lcd_text, "TOTAL: %lu          ", total_count);
       LCD_PrintLine(1, lcd_text);
 
-      sprintf(lcd_text, "SALEM:%lu KHARAB:%lu", salem_count, kharab_count);
+      sprintf(lcd_text, "PASS:%lu REJECT:%lu", pass_count, reject_count);
       LCD_PrintLine(2, lcd_text);
+			
+			if((HAL_GetTick() - report_tick) >= 2000)
+			{
+				report_active = 0;
+				lcd_state = LCD_STATE_WAIT;
+
+				HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_RESET);
+			}
+
 
       if(last_product_valid == 1)
       {
-        if(last_product_status == PRODUCT_SALEM)
-          LCD_PrintLine(3, "LAST: SALEM         ");
+        if(last_product_status == PRODUCT_PASS)
+          LCD_PrintLine(3, "LAST: PASS          ");
         else
-          LCD_PrintLine(3, "LAST: KHARAB        ");
+          LCD_PrintLine(3, "LAST: REJECT        ");
       }
       else
       {
@@ -541,10 +551,10 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
-	LCD_Init_20x4();
-	System_ResetAllData();
-	lcd_state = LCD_STATE_OFF;
-	Update_LCD();
+  LCD_Init_20x4();
+  System_ResetAllData();
+  lcd_state = LCD_STATE_OFF;
+  Update_LCD();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -552,6 +562,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+	  
 		if(system_on == 0)
 		{
 			lcd_state = LCD_STATE_OFF;
@@ -573,6 +584,8 @@ int main(void)
 		Update_LCD();
 
 		HAL_Delay(100);
+
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */

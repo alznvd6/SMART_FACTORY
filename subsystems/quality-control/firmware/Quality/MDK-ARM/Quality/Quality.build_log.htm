@@ -27,70 +27,70 @@ Project File Date:  07/16/2026
 <h2>Output:</h2>
 *** Using Compiler 'V6.24', folder: 'D:\Keil\Keil_5\ARM\ARMCLANG\Bin'
 Rebuild target 'Quality'
-compiling stm32f1xx_it.c...
+compiling stm32f1xx_hal_pwr.c...
 compiling stm32f1xx_hal_rcc_ex.c...
-compiling stm32f1xx_hal_adc_ex.c...
-compiling stm32f1xx_hal_msp.c...
-compiling stm32f1xx_hal_rcc.c...
-compiling stm32f1xx_hal_adc.c...
-compiling stm32f1xx_hal_gpio_ex.c...
 compiling stm32f1xx_hal.c...
 compiling stm32f1xx_hal_exti.c...
-compiling stm32f1xx_hal_gpio.c...
-compiling stm32f1xx_hal_dma.c...
+assembling startup_stm32f103xb.s...
 compiling stm32f1xx_hal_cortex.c...
-compiling stm32f1xx_hal_pwr.c...
+compiling stm32f1xx_hal_adc.c...
+compiling stm32f1xx_it.c...
+compiling stm32f1xx_hal_gpio_ex.c...
 compiling system_stm32f1xx.c...
+compiling stm32f1xx_hal_adc_ex.c...
+compiling stm32f1xx_hal_msp.c...
+compiling stm32f1xx_hal_gpio.c...
 compiling stm32f1xx_hal_flash.c...
+compiling stm32f1xx_hal_dma.c...
 compiling stm32f1xx_hal_flash_ex.c...
-../Core/Src/main.c(317): warning: format specifies type 'unsigned long' but the argument has type 'uint32_t' (aka 'unsigned int') [-Wformat]
-  316 |   len = (uint16_t)sprintf(uart_text, "TOTAL=%lu,SALEM=%lu,KHARAB=%lu\r\n",
+../Core/Src/main.c(318): warning: format specifies type 'unsigned long' but the argument has type 'uint32_t' (aka 'unsigned int') [-Wformat]
+  317 |   len = (uint16_t)sprintf(uart_text, "TOTAL=%lu,PASS=%lu,REJECT=%lu\r\n",
       |                                             ~~~
       |                                             %u
-  317 |                           total_count, salem_count, kharab_count);
+  318 |                           total_count, pass_count, reject_count);
       |                           ^~~~~~~~~~~
-../Core/Src/main.c(317): warning: format specifies type 'unsigned long' but the argument has type 'uint32_t' (aka 'unsigned int') [-Wformat]
-  316 |   len = (uint16_t)sprintf(uart_text, "TOTAL=%lu,SALEM=%lu,KHARAB=%lu\r\n",
-      |                                                       ~~~
-      |                                                       %u
-  317 |                           total_count, salem_count, kharab_count);
-      |                                        ^~~~~~~~~~~
-../Core/Src/main.c(317): warning: format specifies type 'unsigned long' but the argument has type 'uint32_t' (aka 'unsigned int') [-Wformat]
-  316 |   len = (uint16_t)sprintf(uart_text, "TOTAL=%lu,SALEM=%lu,KHARAB=%lu\r\n",
-      |                                                                  ~~~
-      |                                                                  %u
-  317 |                           total_count, salem_count, kharab_count);
-      |                                                     ^~~~~~~~~~~~
+../Core/Src/main.c(318): warning: format specifies type 'unsigned long' but the argument has type 'uint32_t' (aka 'unsigned int') [-Wformat]
+  317 |   len = (uint16_t)sprintf(uart_text, "TOTAL=%lu,PASS=%lu,REJECT=%lu\r\n",
+      |                                                      ~~~
+      |                                                      %u
+  318 |                           total_count, pass_count, reject_count);
+      |                                        ^~~~~~~~~~
+../Core/Src/main.c(318): warning: format specifies type 'unsigned long' but the argument has type 'uint32_t' (aka 'unsigned int') [-Wformat]
+  317 |   len = (uint16_t)sprintf(uart_text, "TOTAL=%lu,PASS=%lu,REJECT=%lu\r\n",
+      |                                                                 ~~~
+      |                                                                 %u
+  318 |                           total_count, pass_count, reject_count);
+      |                                                    ^~~~~~~~~~~~
 ../Core/Src/main.c(440): warning: format specifies type 'unsigned long' but the argument has type 'uint32_t' (aka 'unsigned int') [-Wformat]
   440 |       sprintf(lcd_text, "TOTAL: %lu          ", total_count);
       |                                 ~~~             ^~~~~~~~~~~
       |                                 %u
 ../Core/Src/main.c(443): warning: format specifies type 'unsigned long' but the argument has type 'uint32_t' (aka 'unsigned int') [-Wformat]
-  443 |       sprintf(lcd_text, "SALEM:%lu KHARAB:%lu", salem_count, kharab_count);
-      |                                ~~~              ^~~~~~~~~~~
-      |                                %u
+  443 |       sprintf(lcd_text, "PASS:%lu REJECT:%lu", pass_count, reject_count);
+      |                               ~~~              ^~~~~~~~~~
+      |                               %u
 ../Core/Src/main.c(443): warning: format specifies type 'unsigned long' but the argument has type 'uint32_t' (aka 'unsigned int') [-Wformat]
-  443 |       sprintf(lcd_text, "SALEM:%lu KHARAB:%lu", salem_count, kharab_count);
-      |                                           ~~~                ^~~~~~~~~~~~
-      |                                           %u
+  443 |       sprintf(lcd_text, "PASS:%lu REJECT:%lu", pass_count, reject_count);
+      |                                          ~~~               ^~~~~~~~~~~~
+      |                                          %u
 ../Core/Src/main.c(453): warning: format specifies type 'unsigned long' but the argument has type 'uint32_t' (aka 'unsigned int') [-Wformat]
   453 |       sprintf(lcd_text, "TOTAL: %lu          ", total_count);
       |                                 ~~~             ^~~~~~~~~~~
       |                                 %u
 ../Core/Src/main.c(456): warning: format specifies type 'unsigned long' but the argument has type 'uint32_t' (aka 'unsigned int') [-Wformat]
-  456 |       sprintf(lcd_text, "SALEM:%lu KHARAB:%lu", salem_count, kharab_count);
-      |                                ~~~              ^~~~~~~~~~~
-      |                                %u
+  456 |       sprintf(lcd_text, "PASS:%lu REJECT:%lu", pass_count, reject_count);
+      |                               ~~~              ^~~~~~~~~~
+      |                               %u
 ../Core/Src/main.c(456): warning: format specifies type 'unsigned long' but the argument has type 'uint32_t' (aka 'unsigned int') [-Wformat]
-  456 |       sprintf(lcd_text, "SALEM:%lu KHARAB:%lu", salem_count, kharab_count);
-      |                                           ~~~                ^~~~~~~~~~~~
-      |                                           %u
+  456 |       sprintf(lcd_text, "PASS:%lu REJECT:%lu", pass_count, reject_count);
+      |                                          ~~~               ^~~~~~~~~~~~
+      |                                          %u
 9 warnings generated.
 compiling main.c...
-assembling startup_stm32f103xb.s...
+compiling stm32f1xx_hal_rcc.c...
 compiling stm32f1xx_hal_uart.c...
 linking...
-Program Size: Code=10936 RO-data=452 RW-data=12 ZI-data=2156  
+Program Size: Code=10974 RO-data=450 RW-data=12 ZI-data=2156  
 FromELF: creating hex file...
 "Quality\Quality.axf" - 0 Error(s), 9 Warning(s).
 
@@ -116,7 +116,7 @@ Package Vendor: Keil
 
    * Component: ARM::CMSIS:CORE@6.2.0
       Include file:  CMSIS/Core/Include/tz_context.h
-Build Time Elapsed:  00:00:05
+Build Time Elapsed:  00:00:02
 </pre>
 </body>
 </html>
