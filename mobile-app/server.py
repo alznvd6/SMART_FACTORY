@@ -11,9 +11,7 @@ def trim_string(str_val):
     clean_str = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', str_val)
     return clean_str.strip()
 
-# =========================================================
-# مسیرهای پایگاه داده (بر اساس مسیر دقیق سیستم شما)
-# =========================================================
+
 BASE_DIR = r"C:\Users\ashka\Desktop\Embdded System PRoject\SMART_FACTORY\infrastructure\database"
 WORKER_FILE_PATH = r"C:\Users\ashka\Desktop\Embdded System PRoject\SMART_FACTORY\infrastructure\database\worker_info\worker_ID.txt"
 BIRTH_DATE_PATH = r"C:\Users\ashka\Desktop\Embdded System PRoject\SMART_FACTORY\infrastructure\database\worker_info\date\birth_date.txt"
@@ -47,9 +45,7 @@ def update_worker_file(file_path, new_log_line):
     with open(file_path, 'w', encoding='utf-8') as f:
         f.write('\n'.join(new_content) + '\n')
 
-# =========================================================
-# تابع خواندن داینامیک کارگران از فایل متنی
-# =========================================================
+
 workers_db = {}
 active_sessions = {}
 
@@ -108,9 +104,7 @@ def update_live_status():
 load_workers_from_file()
 update_live_status()
 
-# =========================================================
-# توابع ارتباط با میکروکنترلر
-# =========================================================
+
 def send_to_mcu(msg):
     try:
         ser.write((msg + "\r\n").encode('utf-8'))
@@ -271,8 +265,8 @@ try:
                     if os.path.exists(vac_file):
                         with open(vac_file, 'r', encoding='utf-8') as f:
                             lines = f.read().splitlines()
-                            if lines and len(lines) > 1: # نادیده گرفتن خط شمارنده
-                                vac_status = lines[-1].split(" - ")[-1] # گرفتن کلمه آخر
+                            if lines and len(lines) > 1: 
+                                vac_status = lines[-1].split(" - ")[-1] 
 
                     # بررسی ارسال نامه/درخواست توسط کارگر
                     letter_status = "No"
