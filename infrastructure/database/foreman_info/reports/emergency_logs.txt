@@ -1,0 +1,8 @@
+[2026-07-12 21:29:02] Medical emergency - machinery accident
+[2026-07-12 21:55:45] Fire - siren and hazard lights activated
+[2026-07-12 21:55:52] Critical situation - Order immediate evacuation and shutdown of the entire factory
+[2026-07-12 22:09:44] Fire - siren and hazard lights activated
+[2026-07-12 22:57:44] Fire - siren and hazard lights activated
+[2026-07-12 22:58:13] Critical situation - Order immediate evacuation and shutdown of the entire factory
+[2026-07-12 22:58:22] Medical emergency - chemical poisoning or spill
+[2026-07-12 22:58:28] Medical emergency - machinery accident
