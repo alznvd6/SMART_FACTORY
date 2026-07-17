@@ -24,6 +24,7 @@ typedef enum {
     
     STATE_WORKER_LOGIN,
     STATE_WAIT_WORKER_ID,
+    STATE_WAIT_SERVER_AUTH, 
     STATE_WAIT_WORKER_MENU_ACTION,
     
     STATE_MANAGER_USER_PROMPT,
@@ -31,41 +32,36 @@ typedef enum {
     STATE_MANAGER_PASS_PROMPT,
     STATE_MANAGER_WAIT_PASS,
     STATE_WAIT_MANAGER_MENU_ACTION,
-		STATE_MANAGER_WAIT_ABSENCE_ID,
-	
-		STATE_WAIT_EMERGENCY_CHOICE,
-		STATE_WAIT_MEDICAL_CHOICE,
-		STATE_WORKER_WAIT_LETTER_TEXT,   
+    STATE_MANAGER_WAIT_ABSENCE_ID,
+    STATE_MANAGER_WAIT_FORCE_OUT_ID,
+    
+    STATE_WAIT_EMERGENCY_CHOICE,
+    STATE_WAIT_MEDICAL_CHOICE,
+    STATE_WORKER_WAIT_LETTER_TEXT,   
     STATE_MANAGER_WAIT_REPORT_TEXT,  
     STATE_MANAGER_WAIT_DEMAND_TEXT,
-	
+		STATE_MANAGER_WAIT_INFO_ID,
 } SystemState;
 
 SystemState currentState = STATE_MAIN_MENU;
 
-char rx_buffer[50];
-uint8_t rx_index = 0;
-uint8_t rx_data;
-volatile uint8_t input_ready = 0;
+// ???????? ??????? ????? (UART1)
+char term_rx_buffer[100];
+uint8_t term_rx_index = 0;
+uint8_t term_rx_data;
+volatile uint8_t term_input_ready = 0;
 
-const char* get_worker_name(const char* id) {
-    if (strcmp(id, "1001") == 0) return "Ali Rezaei";
-    if (strcmp(id, "1002") == 0) return "Mohammad Karimi";
-    if (strcmp(id, "1003") == 0) return "Sara Ahmadi";
-    if (strcmp(id, "1004") == 0) return "Reza Hosseini";
-    if (strcmp(id, "1005") == 0) return "Mina Moradi";
-    if (strcmp(id, "1006") == 0) return "Hamid Nouri";
-    if (strcmp(id, "1007") == 0) return "Zahra Ghasemi";
-    if (strcmp(id, "1008") == 0) return "Omid Safari";
-    if (strcmp(id, "1009") == 0) return "Neda Jafari";
-    if (strcmp(id, "1010") == 0) return "Farid Malekani";
-    return "Unknown Worker";
-}
+// ???????? ???? ?????? (UART3)
+char srv_rx_buffer[100];
+uint8_t srv_rx_index = 0;
+uint8_t srv_rx_data;
+volatile uint8_t srv_input_ready = 0;
 
 const char admin_user[] = "admin";
 const char admin_pass[] = "1234";
 char entered_user[20];
 char entered_pass[20];
+char entered_name[30]; 
 
 void trim_string(char *str) {
     int len = strlen(str);
@@ -86,6 +82,7 @@ void trim_string(char *str) {
 
 /* Private variables ---------------------------------------------------------*/
 UART_HandleTypeDef huart1;
+UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
 /* USER CODE END PV */
@@ -94,6 +91,7 @@ UART_HandleTypeDef huart1;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART1_UART_Init(void);
+static void MX_USART3_UART_Init(void);
 /* USER CODE BEGIN PFP */
 /* USER CODE END PFP */
 
@@ -180,10 +178,13 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART1_UART_Init();
+  MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
-  HAL_UART_Receive_IT(&huart1, &rx_data, 1);
+  HAL_UART_Receive_IT(&huart1, &term_rx_data, 1);
+  HAL_UART_Receive_IT(&huart3, &srv_rx_data, 1); 
+  
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15, GPIO_PIN_SET);
-	LCD_Init();
+  LCD_Init();
   LCD_SetCursor(0, 0);
   LCD_String("  SMART FACTORY  ");
   LCD_SetCursor(1, 0);
@@ -197,317 +198,303 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    switch (currentState) {
-        
-        case STATE_MAIN_MENU:
+		
+    if (srv_input_ready) {
+            srv_input_ready = 0;
+            trim_string(srv_rx_buffer);
+
+            if (srv_rx_buffer[0] == '@') {
+                if (strncmp(srv_rx_buffer, "@NAME:", 6) == 0) {
+                    strcpy(entered_name, srv_rx_buffer + 6);
+                    printf("\r\n========================================");
+                    printf("\r\n[ACCESS GRANTED] Welcome: %s", entered_name);
+                    printf("\r\n========================================\r\n");
+                    printf("--- WORKER MENU ---\r\n");
+                    printf("1. Clock In (Check-in)\r\n2. Clock Out (Check-out)\r\n3. Request Leave (Vacation)\r\n4. Send Letter\r\n5. Logout\r\nSelect: ");
+                    
+                    LCD_Cmd(0x01);
+                    LCD_SetCursor(0, 0); LCD_String("Welcome Worker:");
+                    LCD_SetCursor(1, 0); 
+                    char lcd_buf[17];
+                    sprintf(lcd_buf, "%-16.16s", entered_name);
+                    LCD_String(lcd_buf);
+                    currentState = STATE_WAIT_WORKER_MENU_ACTION;
+                }
+                else if (strncmp(srv_rx_buffer, "@MSG:", 5) == 0) {
+                    printf("\r\n[SERVER]: %s\r\n", srv_rx_buffer + 5);
+                    if (currentState == STATE_WAIT_SERVER_AUTH) {
+                        currentState = STATE_MAIN_MENU; 
+                    } else if (currentState == STATE_WAIT_WORKER_MENU_ACTION) {
+                        printf("\r\nSelect next option (or 5 to logout): ");
+                    } else if (currentState == STATE_WAIT_MANAGER_MENU_ACTION) {
+                        printf("\r\nSelect next option (or 7 to logout): ");
+                    }
+                }
+								else if (strncmp(srv_rx_buffer, "@PRT:", 5) == 0) {
+                    printf("\r\n%s", srv_rx_buffer + 5);
+                }
+                else if (strncmp(srv_rx_buffer, "@LCD1:", 6) == 0) {
+                    LCD_SetCursor(0, 0);
+                    char lcd_buf[17];
+                    sprintf(lcd_buf, "%-16.16s", srv_rx_buffer + 6);
+                    LCD_String(lcd_buf);
+                }
+                else if (strncmp(srv_rx_buffer, "@LCD2:", 6) == 0) {
+                    LCD_SetCursor(1, 0);
+                    char lcd_buf[17];
+                    sprintf(lcd_buf, "%-16.16s", srv_rx_buffer + 6);
+                    LCD_String(lcd_buf);
+                }
+            }
+            srv_rx_index = 0; // <--- ???? ???: ???? ???? ????? ???? ???????? ????
+        }
+
+        // 2. ?????? ????? ?????? ?? ??????? ?????
+        if (term_input_ready) {
+            term_input_ready = 0;
+            trim_string(term_rx_buffer);
+            char tx_buf[50]; 
+
+            switch (currentState) {
+                case STATE_WAIT_MAIN_CHOICE:
+                    if (term_rx_buffer[0] == '1') {
+                        printf("\r\n\r\n[WORKER LOGIN] Please enter Fingerprint ID: ");
+                        LCD_Cmd(0x01); LCD_SetCursor(0,0); LCD_String("Worker Login:"); LCD_SetCursor(1,0); LCD_String("Waiting for ID..");
+                        currentState = STATE_WAIT_WORKER_ID;
+                    } else if (term_rx_buffer[0] == '2') {
+                        printf("\r\n\r\n[MANAGER LOGIN]\r\nUsername: ");
+                        LCD_Cmd(0x01); LCD_SetCursor(0,0); LCD_String("Manager Login:"); LCD_SetCursor(1,0); LCD_String("Enter Username..");
+                        currentState = STATE_MANAGER_WAIT_USER;
+                    } else if (term_rx_buffer[0] == '3') {
+                        printf("\r\n\r\n!!! EMERGENCY PROTOCOL !!!\r\n1. Fire\r\n2. Medical\r\n3. Evacuate\r\n4. Cancel\r\nSelect: ");
+                        LCD_Cmd(0x01); LCD_SetCursor(0,0); LCD_String("Emergency Menu"); LCD_SetCursor(1,0); LCD_String("Select Type...");
+                        currentState = STATE_WAIT_EMERGENCY_CHOICE; 
+                    } else {
+                        printf("\r\nInvalid choice. Try again: ");
+                    }
+                    break;
+
+                case STATE_WAIT_WORKER_ID:
+                    strcpy(entered_user, term_rx_buffer); 
+                    printf("\r\n[SYSTEM] Verifying ID %s with Server...\r\n", entered_user);
+                    LCD_Cmd(0x01); LCD_SetCursor(0,0); LCD_String("Authenticating.."); 
+                    
+                    sprintf(tx_buf, "REQ_NAME:%s\r\n", entered_user);
+                    HAL_UART_Transmit(&huart3, (uint8_t*)tx_buf, strlen(tx_buf), 100);
+                    
+                    currentState = STATE_WAIT_SERVER_AUTH;
+                    break;
+
+                case STATE_WAIT_WORKER_MENU_ACTION:
+                    if (term_rx_buffer[0] == '1') {
+                        sprintf(tx_buf, "CHECKIN:%s\r\n", entered_user);
+                        HAL_UART_Transmit(&huart3, (uint8_t*)tx_buf, strlen(tx_buf), 100);
+                    } 
+                    else if (term_rx_buffer[0] == '2') {
+                        sprintf(tx_buf, "CHECKOUT:%s\r\n", entered_user);
+                        HAL_UART_Transmit(&huart3, (uint8_t*)tx_buf, strlen(tx_buf), 100);
+                    }
+                    else if (term_rx_buffer[0] == '3') {
+                        if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_0) == GPIO_PIN_SET) {
+                            sprintf(tx_buf, "VACATION:%s:APPROVED\r\n", entered_user);
+                            HAL_UART_Transmit(&huart3, (uint8_t*)tx_buf, strlen(tx_buf), 100);
+                            printf("\r\n[RESULT] Vacation APPROVED by Manager Panel.\r\nSelect next option (or 5 to logout): ");
+                        } else {
+                            sprintf(tx_buf, "VACATION:%s:REJECTED\r\n", entered_user);
+                            HAL_UART_Transmit(&huart3, (uint8_t*)tx_buf, strlen(tx_buf), 100);
+                            printf("\r\n[RESULT] Vacation REJECTED by Manager Panel.\r\nSelect next option (or 5 to logout): ");
+                        }
+                    }
+                    else if (term_rx_buffer[0] == '4') {
+                        printf("\r\nPlease type your message/letter: ");
+                        currentState = STATE_WORKER_WAIT_LETTER_TEXT;
+                    }
+                    else if (term_rx_buffer[0] == '5') {
+                        printf("\r\n[LOGGED OUT] Returning to Main Menu...\r\n");
+                        currentState = STATE_MAIN_MENU;
+                    } else {
+                        printf("\r\nInvalid option.\r\nSelect next option (or 5 to logout): ");
+                    }
+                    break;
+
+                case STATE_MANAGER_WAIT_USER:
+                    strcpy(entered_user, term_rx_buffer);
+                    printf("\r\nPassword: ");
+                    LCD_SetCursor(1,0); LCD_String("Enter Password..");
+                    currentState = STATE_MANAGER_WAIT_PASS;
+                    break;
+
+                case STATE_MANAGER_WAIT_PASS:
+                    strcpy(entered_pass, term_rx_buffer);
+                    if (strcmp(entered_user, admin_user) == 0 && strcmp(entered_pass, admin_pass) == 0) {
+                        printf("\r\n========================================");
+                        printf("\r\n[ACCESS GRANTED] Welcome Foreman/Manager");
+                        printf("\r\n========================================\r\n");
+                        printf("--- MANAGER MENU ---\r\n");
+                        printf("1. Stop Production Line\r\n2. Report Failure\r\n3. Send Demand/Letter\r\n4. Register Absence\r\n5. Force Worker Checkout\r\n6. View Worker Info\r\n7. Logout\r\nSelect: ");
+                        
+                        LCD_Cmd(0x01); LCD_SetCursor(0,0); LCD_String("Manager Panel"); LCD_SetCursor(1,0); LCD_String("Access Granted!");
+                        currentState = STATE_WAIT_MANAGER_MENU_ACTION;
+                    } else {
+                        printf("\r\n[ACCESS DENIED] Incorrect Username or Password.\r\n");
+                        LCD_Cmd(0x01); LCD_SetCursor(0,0); LCD_String("Access Denied!"); 
+                        currentState = STATE_MAIN_MENU;
+                    }
+                    break;
+
+                case STATE_WAIT_MANAGER_MENU_ACTION:
+                    if (term_rx_buffer[0] == '1') {
+                        sprintf(tx_buf, "MANAGER:STOP_LINE\r\n");
+                        HAL_UART_Transmit(&huart3, (uint8_t*)tx_buf, strlen(tx_buf), 100);
+                        printf("\r\n[ALARM] Production Line STOPPED command sent!\r\nSelect next option (or 7 to logout): ");
+                    }
+                    else if (term_rx_buffer[0] == '2') {
+                        printf("\r\nEnter failure details: ");
+                        currentState = STATE_MANAGER_WAIT_REPORT_TEXT;
+                    }
+                    else if (term_rx_buffer[0] == '3') {
+                        printf("\r\nEnter demand/task details: ");
+                        currentState = STATE_MANAGER_WAIT_DEMAND_TEXT;
+                    }
+                    else if (term_rx_buffer[0] == '4') {
+                        printf("\r\nEnter Worker ID to mark as Absent (e.g. 1001): ");
+                        currentState = STATE_MANAGER_WAIT_ABSENCE_ID;
+                    }
+                    else if (term_rx_buffer[0] == '5') {
+                        printf("\r\nEnter Worker ID to Force Checkout (e.g. 1001): ");
+                        LCD_Cmd(0x01); LCD_SetCursor(0,0); LCD_String("Force Checkout:"); LCD_SetCursor(1,0); LCD_String("Enter ID:       ");
+                        currentState = STATE_MANAGER_WAIT_FORCE_OUT_ID;
+                    }
+                    else if (term_rx_buffer[0] == '6') {  // <--- ???? ????? ? ?? ???? ???????
+                        printf("\r\nEnter Worker ID to view info (e.g. 1001): ");
+                        LCD_Cmd(0x01); LCD_SetCursor(0,0); LCD_String("Worker Info:"); LCD_SetCursor(1,0); LCD_String("Enter ID:       ");
+                        currentState = STATE_MANAGER_WAIT_INFO_ID;
+                    }
+                    else if (term_rx_buffer[0] == '7') {  // <--- ???? ????? ? ?? ????
+                        printf("\r\n[LOGGED OUT] Returning to Main Menu...\r\n");
+                        currentState = STATE_MAIN_MENU;
+                    } 
+                    else {
+                        printf("\r\nInvalid option.\r\nSelect next option (or 7 to logout): ");
+                    }
+                    break;
+
+                case STATE_MANAGER_WAIT_FORCE_OUT_ID:
+                    sprintf(tx_buf, "FORCE_OUT:%s\r\n", term_rx_buffer);
+                    HAL_UART_Transmit(&huart3, (uint8_t*)tx_buf, strlen(tx_buf), 100);
+                    currentState = STATE_WAIT_MANAGER_MENU_ACTION;
+                    break;
+
+                case STATE_WORKER_WAIT_LETTER_TEXT:
+                    sprintf(tx_buf, "LETTER:%s:%s\r\n", entered_user, term_rx_buffer);
+                    HAL_UART_Transmit(&huart3, (uint8_t*)tx_buf, strlen(tx_buf), 100);
+                    printf("\r\n[RESULT] Your letter was sent to the server.\r\nSelect next option (or 5 to logout): ");
+                    currentState = STATE_WAIT_WORKER_MENU_ACTION;
+                    break;
+
+                case STATE_MANAGER_WAIT_REPORT_TEXT:
+                    sprintf(tx_buf, "MANAGER:REPORT_FAIL:%s\r\n", term_rx_buffer);
+                    HAL_UART_Transmit(&huart3, (uint8_t*)tx_buf, strlen(tx_buf), 100);
+                    printf("\r\n[SYSTEM] Failure report sent to database.\r\nSelect next option (or 7 to logout): ");
+                    currentState = STATE_WAIT_MANAGER_MENU_ACTION;
+                    break;
+
+                case STATE_MANAGER_WAIT_DEMAND_TEXT:
+                    sprintf(tx_buf, "MANAGER:DEMAND:%s\r\n", term_rx_buffer);
+                    HAL_UART_Transmit(&huart3, (uint8_t*)tx_buf, strlen(tx_buf), 100);
+                    printf("\r\n[SYSTEM] Demand letter sent to database.\r\nSelect next option (or 7 to logout): ");
+                    currentState = STATE_WAIT_MANAGER_MENU_ACTION;
+                    break;
+
+                case STATE_MANAGER_WAIT_ABSENCE_ID:
+                    sprintf(tx_buf, "ABSENCE:%s\r\n", term_rx_buffer);
+                    HAL_UART_Transmit(&huart3, (uint8_t*)tx_buf, strlen(tx_buf), 100);
+                    printf("\r\n[SYSTEM] Absence record sent for ID: %s\r\nSelect next option (or 7 to logout): ", term_rx_buffer);
+                    currentState = STATE_WAIT_MANAGER_MENU_ACTION;
+                    break;
+                    
+                case STATE_MANAGER_WAIT_INFO_ID:
+                    sprintf(tx_buf, "MANAGER:INFO:%s\r\n", term_rx_buffer);
+                    HAL_UART_Transmit(&huart3, (uint8_t*)tx_buf, strlen(tx_buf), 100);
+										printf("\r\n[SYSTEM] Fetching data from server...\r\n");
+                    currentState = STATE_WAIT_MANAGER_MENU_ACTION; 
+                    break;
+								case STATE_WAIT_EMERGENCY_CHOICE:
+                    if (term_rx_buffer[0] == '1') {
+                        printf("\r\nEMERGENCY:FIRE\r\n");
+                        printf("\r\n[ALARM] Fire Alarm triggered! Strobe Lights & Buzzer Activated.\r\n");
+                        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
+                        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
+                        printf("\r\nReturning to Main Menu...\r\n");
+                        currentState = STATE_MAIN_MENU;
+                    } 
+                    else if (term_rx_buffer[0] == '2') {
+                        printf("\r\n\r\n--- MEDICAL EMERGENCY SUBMENU ---\r\n");
+                        printf("1. Machinery Accident / Injury\r\n");
+                        printf("2. Chemical / Toxic Exposure\r\n");
+                        printf("3. Back to Main Menu\r\n");
+                        printf("Select Medical Type: ");
+                        currentState = STATE_WAIT_MEDICAL_CHOICE;
+                    } 
+                    else if (term_rx_buffer[0] == '3') { 
+                        printf("\r\nEMERGENCY:CRITICAL_EVACUATE\r\n");
+                        printf("\r\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\r\n");
+                        printf("!! CRITICAL SITUATION: EVACUATE IMMEDIATELY !!\r\n");
+                        printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\r\n");
+                        
+                        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15, GPIO_PIN_RESET);
+                        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_SET);
+                        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);  
+                        
+                        LCD_Cmd(0x01);
+                        LCD_SetCursor(0, 0); LCD_String("!!! EMERGENCY !!!");
+                        LCD_SetCursor(1, 0); LCD_String("EVACUATE FACTORY!");
+                        printf("\r\nReturning to Main Menu...\r\n");
+                        currentState = STATE_MAIN_MENU;
+                    } 
+                    else if (term_rx_buffer[0] == '4') {
+                        printf("\r\nReturning to Main Menu...\r\n");
+                        currentState = STATE_MAIN_MENU;
+                    } 
+                    else {
+                        printf("\r\nInvalid emergency type.\r\nSelect: ");
+                    }
+                    break;
+
+                case STATE_WAIT_MEDICAL_CHOICE:
+                    if (term_rx_buffer[0] == '1') {
+                        printf("\r\nEMERGENCY:MEDICAL_MACHINERY\r\n");
+                        printf("\r\n[NOTIFICATION] First Aid Team dispatched for Machinery Accident.\r\n");
+                    } 
+                    else if (term_rx_buffer[0] == '2') {
+                        printf("\r\nEMERGENCY:MEDICAL_CHEMICAL\r\n");
+                        printf("\r\n[NOTIFICATION] Chemical Exposure protocol activated. Hazmat team notified.\r\n");
+                    } 
+                    else {
+                        printf("\r\nReturning without dispatch.\r\n");
+                    }
+                    currentState = STATE_MAIN_MENU;
+                    break;
+            }
+            term_rx_index = 0; // <--- ???? ???: ???? ???? ????? ?????? ???? ??????? ????
+        }
+
+        // 3. ?????? ?? ???? ????
+        if (currentState == STATE_MAIN_MENU) {
+            LCD_Cmd(0x01);
+            LCD_SetCursor(0, 0); LCD_String("  SMART FACTORY  ");
+            LCD_SetCursor(1, 0); LCD_String(" STATUS: NORMAL  ");
+            
             printf("\r\n\r\n=== SMART FACTORY CENTRAL TERMINAL ===\r\n");
             printf("1. Worker Login (Fingerprint ID)\r\n");
             printf("2. Foreman/Manager Login (Credentials)\r\n");
             printf("3. EMERGENCY (SOS)\r\n");
             printf("Select an option (1, 2, or 3): ");
-            input_ready = 0;
-            rx_index = 0;
             currentState = STATE_WAIT_MAIN_CHOICE;
-            break;
-
-        case STATE_WAIT_MAIN_CHOICE:
-            if (input_ready) {
-                input_ready = 0;
-                trim_string(rx_buffer); 
-                
-                if (rx_buffer[0] == '1') {
-                    currentState = STATE_WORKER_LOGIN;
-                } else if (rx_buffer[0] == '2') {
-                    currentState = STATE_MANAGER_USER_PROMPT;
-                } else if (rx_buffer[0] == '3') {
-                    printf("\r\n\r\n!!! EMERGENCY PROTOCOL INITIATED !!!\r\n");
-                    printf("1. Fire Alarm\r\n2. Medical Emergency\r\n3. Hazardous Leak\r\n");
-                    printf("Select Emergency Type: ");
-                    currentState = STATE_WAIT_EMERGENCY_CHOICE; 
-                } else {
-                    printf("\r\nInvalid choice. Try again: ");
-                }
-                rx_index = 0;
-            }
-            break;
-
-        // ---------------- EMERGENCY SECTION ----------------
-        case STATE_WAIT_EMERGENCY_CHOICE:
-            if (input_ready) {
-                input_ready = 0;
-                trim_string(rx_buffer);
-                
-                if (rx_buffer[0] == '1') { 
-                    printf("\r\nEMERGENCY:FIRE\r\n");
-                    printf("\r\n[ALARM] Fire Alarm triggered! Strobe Lights & Buzzer Activated.\r\n");
-                    
-                    
-                    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
-                    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
-                    
-                    printf("\r\nReturning to Main Menu...\r\n");
-                    currentState = STATE_MAIN_MENU;
-                } 
-                else if (rx_buffer[0] == '2') { // Medical Emergency 
-                    printf("\r\n\r\n--- MEDICAL EMERGENCY SUBMENU ---\r\n");
-                    printf("1. Machinery Accident / Injury\r\n");
-                    printf("2. Chemical / Toxic Exposure\r\n");
-                    printf("3. Back to Main Menu\r\n");
-                    printf("Select Medical Type: ");
-                    currentState = STATE_WAIT_MEDICAL_CHOICE;
-                } 
-                else if (rx_buffer[0] == '3') { // Critical Situations 
-                    printf("\r\nEMERGENCY:CRITICAL_EVACUATE\r\n");
-                    printf("\r\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\r\n");
-                    printf("!! CRITICAL SITUATION: EVACUATE IMMEDIATELY !!\r\n");
-                    printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\r\n");
-                    
-                   
-                    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15, GPIO_PIN_RESET);
-                    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_SET);
-                    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);  
-                    
-                    printf("\r\nReturning to Main Menu...\r\n");
-                    currentState = STATE_MAIN_MENU;
-                } 
-                else if (rx_buffer[0] == '4') {
-                    printf("\r\nReturning to Main Menu...\r\n");
-                    currentState = STATE_MAIN_MENU;
-                } 
-                else {
-                    printf("\r\nInvalid emergency type.\r\n");
-                }
-                rx_index = 0; 
-            }
-						LCD_Cmd(0x01);
-						LCD_SetCursor(0, 0);
-						LCD_String("!!! EMERGENCY !!!");
-						LCD_SetCursor(1, 0);
-						LCD_String("EVACUATE FACTORY!");
-            break;
-
+        }
         
-        case STATE_WAIT_MEDICAL_CHOICE:
-            if (input_ready) {
-                input_ready = 0;
-                trim_string(rx_buffer);
-                
-                if (rx_buffer[0] == '1') {
-                    printf("\r\nEMERGENCY:MEDICAL_MACHINERY\r\n");
-                    printf("\r\n[NOTIFICATION] First Aid Team dispatched for Machinery Accident.\r\n");
-                } 
-                else if (rx_buffer[0] == '2') {
-                    printf("\r\nEMERGENCY:MEDICAL_CHEMICAL\r\n");
-                    printf("\r\n[NOTIFICATION] Chemical Exposure protocol activated. Hazmat team notified.\r\n");
-                } 
-                else {
-                    printf("\r\nReturning without dispatch.\r\n");
-                }
-                
-                currentState = STATE_MAIN_MENU;
-                rx_index = 0;
-            }
-            break;
-        // ---------------- WORKER SECTION ----------------
-        case STATE_WORKER_LOGIN:
-            printf("\r\n\r\n[WORKER LOGIN] Please enter Fingerprint ID: ");
-            input_ready = 0;
-            rx_index = 0;
-            currentState = STATE_WAIT_WORKER_ID;
-            break;
-            
-        case STATE_WAIT_WORKER_ID:
-            if (input_ready) {
-                input_ready = 0;
-                trim_string(rx_buffer);
-                strcpy(entered_user, rx_buffer); 
-
-                printf("\r\n========================================");
-                printf("\r\n[ACCESS GRANTED] Welcome: %s", get_worker_name(rx_buffer));
-                printf("\r\n========================================\r\n");
-                printf("--- WORKER MENU ---\r\n");
-                printf("1. Check-in\r\n2. Request Leave (Vacation)\r\n3. Send Letter\r\n4. Logout\r\n");
-                printf("Select: ");
-                
-                currentState = STATE_WAIT_WORKER_MENU_ACTION;
-                rx_index = 0; 
-            }
-            break;
-
-        case STATE_WAIT_WORKER_MENU_ACTION:
-            if (input_ready) {
-                input_ready = 0;
-                trim_string(rx_buffer);
-                
-                if (rx_buffer[0] == '1') {
-                    printf("\r\nCHECKIN:%s\r\n", entered_user);
-                } 
-                else if (rx_buffer[0] == '2') {
-                    if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_0) == GPIO_PIN_SET) {
-                        printf("\r\nVACATION:%s:APPROVED\r\n", entered_user);
-                        printf("\r\n[RESULT] Vacation APPROVED by Manager Panel.\r\n");
-                    } else {
-                        printf("\r\nVACATION:%s:REJECTED\r\n", entered_user);
-                        printf("\r\n[RESULT] Vacation REJECTED by Manager Panel.\r\n");
-                    }
-                }
-                else if (rx_buffer[0] == '3') {
-                    printf("\r\nPlease type your message/letter: ");
-                    currentState = STATE_WORKER_WAIT_LETTER_TEXT;
-                    rx_index = 0;
-                    break; 
-                }
-                else if (rx_buffer[0] == '4') {
-                    printf("\r\n[LOGGED OUT] Returning to Main Menu...\r\n");
-                    currentState = STATE_MAIN_MENU;
-                }
-                else {
-                    printf("\r\nInvalid option.\r\n");
-                }
-                
-                if (currentState == STATE_WAIT_WORKER_MENU_ACTION) {
-                    printf("\r\nSelect next option (or 4 to logout): ");
-                }
-                rx_index = 0; 
-            }
-            break;
-
-        // ---------------- MANAGER SECTION ----------------
-        case STATE_MANAGER_USER_PROMPT:
-            printf("\r\n\r\n[MANAGER LOGIN]\r\nUsername: ");
-            input_ready = 0;
-            rx_index = 0;
-            currentState = STATE_MANAGER_WAIT_USER;
-            break;
-
-        case STATE_MANAGER_WAIT_USER:
-            if (input_ready) {
-                input_ready = 0;
-                trim_string(rx_buffer);
-                strcpy(entered_user, rx_buffer);
-                currentState = STATE_MANAGER_PASS_PROMPT;
-                rx_index = 0; 
-            }
-            break;
-
-        case STATE_MANAGER_PASS_PROMPT:
-            printf("\r\nPassword: ");
-            input_ready = 0;
-            rx_index = 0;
-            currentState = STATE_MANAGER_WAIT_PASS;
-            break;
-
-        case STATE_MANAGER_WAIT_PASS:
-            if (input_ready) {
-                input_ready = 0;
-                trim_string(rx_buffer);
-                strcpy(entered_pass, rx_buffer);
-                
-                if (strcmp(entered_user, admin_user) == 0 && strcmp(entered_pass, admin_pass) == 0) {
-                    printf("\r\n========================================");
-                    printf("\r\n[ACCESS GRANTED] Welcome Foreman/Manager");
-                    printf("\r\n========================================\r\n");
-                    printf("--- MANAGER MENU ---\r\n");
-                    printf("1. Stop Production Line\r\n2. Report Failure\r\n3. Send Demand/Letter\r\n4. Register Absence\r\n5. Logout\r\n");
-                    printf("Select: ");
-                    currentState = STATE_WAIT_MANAGER_MENU_ACTION;
-                } else {
-                    printf("\r\n[ACCESS DENIED] Incorrect Username or Password.\r\n");
-                    currentState = STATE_MAIN_MENU;
-                }
-                rx_index = 0;
-            }
-            break;
-
-        case STATE_WAIT_MANAGER_MENU_ACTION:
-            if (input_ready) {
-                input_ready = 0;
-                trim_string(rx_buffer);
-                
-                if (rx_buffer[0] == '1') {
-                    printf("\rMANAGER:STOP_LINE\r\n");
-                    printf("\r\n[ALARM] Production Line STOPPED command sent!\r\n");
-                }
-                else if (rx_buffer[0] == '2') {
-                    printf("\r\nEnter failure details: ");
-                    currentState = STATE_MANAGER_WAIT_REPORT_TEXT;
-                    rx_index = 0;
-                    break;
-                }
-                else if (rx_buffer[0] == '3') {
-                    printf("\r\nEnter demand/task details: ");
-                    currentState = STATE_MANAGER_WAIT_DEMAND_TEXT;
-                    rx_index = 0;
-                    break;
-                }
-                else if (rx_buffer[0] == '4') {
-                    printf("\r\nEnter Worker ID to mark as Absent (e.g. 1001): ");
-                    currentState = STATE_MANAGER_WAIT_ABSENCE_ID;
-                    rx_index = 0;
-                    break; 
-                }
-                else if (rx_buffer[0] == '5') {
-                    printf("\r\n[LOGGED OUT] Returning to Main Menu...\r\n");
-                    currentState = STATE_MAIN_MENU;
-                }
-                else {
-                    printf("\r\nInvalid option.\r\n");
-                }
-                
-                if (currentState == STATE_WAIT_MANAGER_MENU_ACTION) {
-                    printf("\r\nSelect next option (or 5 to logout): ");
-                }
-                rx_index = 0; 
-            }
-						case STATE_MANAGER_WAIT_ABSENCE_ID:
-            if (input_ready) {
-                input_ready = 0;
-                trim_string(rx_buffer);
-                
-                printf("\r\nABSENCE:%s\r\n", rx_buffer);
-                printf("\r\n[SYSTEM] Absence record sent for ID: %s\r\n", rx_buffer);
-                
-                printf("\r\nSelect next option (or 5 to logout): ");
-                currentState = STATE_WAIT_MANAGER_MENU_ACTION;
-                rx_index = 0;
-            }
-            break;
-        case STATE_WORKER_WAIT_LETTER_TEXT:
-            if (input_ready) {
-                input_ready = 0;
-                trim_string(rx_buffer);
-                printf("\r\nLETTER:%s:%s\r\n", entered_user, rx_buffer);
-                printf("\r\n[RESULT] Your letter was sent to the server.\r\n");
-                printf("\r\nSelect next option (or 4 to logout): ");
-                currentState = STATE_WAIT_WORKER_MENU_ACTION;
-                rx_index = 0;
-            }
-            break;
-        case STATE_MANAGER_WAIT_REPORT_TEXT:
-            if (input_ready) {
-                input_ready = 0;
-                trim_string(rx_buffer);
-                printf("\r\nMANAGER:REPORT_FAIL:%s\r\n", rx_buffer);
-                printf("\r\n[SYSTEM] Failure report sent to database.\r\n");
-                printf("\r\nSelect next option (or 5 to logout): ");
-                currentState = STATE_WAIT_MANAGER_MENU_ACTION;
-                rx_index = 0;
-            }
-            break;
-        case STATE_MANAGER_WAIT_DEMAND_TEXT:
-            if (input_ready) {
-                input_ready = 0;
-                trim_string(rx_buffer);
-                printf("\r\nMANAGER:DEMAND:%s\r\n", rx_buffer);
-                printf("\r\n[SYSTEM] Demand letter sent to database.\r\n");
-                printf("\r\nSelect next option (or 5 to logout): ");
-                currentState = STATE_WAIT_MANAGER_MENU_ACTION;
-                rx_index = 0;
-            }
-            break;
-    }
-    HAL_Delay(50);
-  }
+        HAL_Delay(50);
+	}
   /* USER CODE END 3 */
 }
 
@@ -581,6 +568,39 @@ static void MX_USART1_UART_Init(void)
 }
 
 /**
+  * @brief USART3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART3_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART3_Init 0 */
+
+  /* USER CODE END USART3_Init 0 */
+
+  /* USER CODE BEGIN USART3_Init 1 */
+
+  /* USER CODE END USART3_Init 1 */
+  huart3.Instance = USART3;
+  huart3.Init.BaudRate = 9600;
+  huart3.Init.WordLength = UART_WORDLENGTH_8B;
+  huart3.Init.StopBits = UART_STOPBITS_1;
+  huart3.Init.Parity = UART_PARITY_NONE;
+  huart3.Init.Mode = UART_MODE_TX_RX;
+  huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart3.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART3_Init 2 */
+
+  /* USER CODE END USART3_Init 2 */
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -644,29 +664,62 @@ int fputc(int ch, FILE *f) {
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
     if (huart->Instance == USART1) {
-        // ?. ??? ???? ????? ??? ??
-        if (rx_data == '\r' || rx_data == '\n') {
-            rx_buffer[rx_index] = '\0';
-            input_ready = 1;            
+        if (term_rx_data == '\r' || term_rx_data == '\n') {
+            if (term_rx_index > 0) { 
+                term_rx_buffer[term_rx_index] = '\0';
+                term_input_ready = 1;
+            }
+            // ????? ?????: ???? ???? ?? ?? ???? ??? ?? ?? ?????
+            uint8_t nl[] = {'\r', '\n'};
+            HAL_UART_Transmit(&huart1, nl, 2, 10);
         } 
-        // ?. ??? ???? ???????? (??? ????) ??? ??
-        else if (rx_data == '\b' || rx_data == 0x08) { 
-            if (rx_index > 0) {
-                rx_index--; // ?????? ???? ?? ?? ???? ??? ?????? ?? ??????? ???? ??? ???
-                
-                // ??? ? ??????? ???? ??????? ??? ??????? ??????? ?? ??????? ???? ?????? ??? ???
+        // ???? ????????: ???????? ?? ?? ?? ??????? ????????? ? 0x7F ???????
+        else if (term_rx_data == '\b' || term_rx_data == 0x08 || term_rx_data == 0x7F) { 
+            if (term_rx_index > 0) {
+                term_rx_index--; 
                 uint8_t back_seq[] = {'\b', ' ', '\b'}; 
                 HAL_UART_Transmit(&huart1, back_seq, 3, 10);
             }
         } 
-        // ?. ?????? ?????????? ??????
         else {
-            if (rx_index < sizeof(rx_buffer) - 1) {
-                rx_buffer[rx_index++] = rx_data;
-                HAL_UART_Transmit(&huart1, &rx_data, 1, 10);
+            if (term_rx_index < sizeof(term_rx_buffer) - 1) {
+                term_rx_buffer[term_rx_index++] = term_rx_data;
+                HAL_UART_Transmit(&huart1, &term_rx_data, 1, 10); 
             }
         }
-        HAL_UART_Receive_IT(&huart1, &rx_data, 1);
+        HAL_UART_Receive_IT(&huart1, &term_rx_data, 1);
+    }
+    
+    else if (huart->Instance == USART3) {
+        if (srv_rx_data == '\r' || srv_rx_data == '\n') {
+            if (srv_rx_index > 0) {
+                srv_rx_buffer[srv_rx_index] = '\0';
+                srv_input_ready = 1;
+            }
+        } 
+        else {
+            // ??? ?????: ??? ?? ????? ??? ???? ?? ???? ?? ???? ???? ???? ?????? ??? ????
+            if (srv_input_ready == 0) {
+                if (srv_rx_index < sizeof(srv_rx_buffer) - 1) {
+                    srv_rx_buffer[srv_rx_index++] = srv_rx_data;
+                }
+            }
+        }
+        HAL_UART_Receive_IT(&huart3, &srv_rx_data, 1);
+    }
+}
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
+    // ??? ???? ??? ??????????? ? ?????????? ???? ?????? ?? ???? ???? ???? Overrun
+    if (huart->Instance == USART1) {
+        // ??? ???? ???? ??? ?? ???? ??????????
+        __HAL_UART_CLEAR_OREFLAG(huart);
+        // ???? ???? ?????? ????????? ???????
+        HAL_UART_Receive_IT(&huart1, &term_rx_data, 1);
+    }
+    else if (huart->Instance == USART3) {
+        __HAL_UART_CLEAR_OREFLAG(huart);
+        // ???? ???? ?????? ????????? ???? ??????
+        HAL_UART_Receive_IT(&huart3, &srv_rx_data, 1);
     }
 }
 /* USER CODE END 4 */
