@@ -117,77 +117,82 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
-adc = HAL_ADC_GetValue(&hadc1);
+			
+			HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
+			adc = HAL_ADC_GetValue(&hadc1);
 
-// ?????? ?? ????? ???? - ???? float ???? ??????? ?? ???? ????
-// ?????? 0 ?? 14.0 mm/s? ????? 10 = 0 ?? 140
-uint16_t vib_scaled = (uint16_t)(((uint32_t)adc * 140) / 4095);
-uint8_t vib_int = (uint8_t)(vib_scaled / 10);
-uint8_t vib_dec = (uint8_t)(vib_scaled % 10);
 
-// ????? ????? ?? ???? ISO 10816
-// NORMAL  : 0.0 - 2.8 mm/s
-// WARNING : 2.8 - 7.1 mm/s
-// DANGER  : ????? 7.1 mm/s
-const char* status;
-if (adc < 819)
-    status = "NORMAL  ";
-else if (adc < 2074)
-    status = "WARNING!";
-else
-    status = "DANGER!!";
+			uint16_t vib_scaled = (uint16_t)(((uint32_t)adc * 140) / 4095);
+			uint8_t vib_int = (uint8_t)(vib_scaled / 10);
+			uint8_t vib_dec = (uint8_t)(vib_scaled % 10);
+			
+			// LED Trend 
+			// vib_scaled 
+			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, (vib_scaled >= 0)   ? GPIO_PIN_SET : GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, (vib_scaled >= 36)  ? GPIO_PIN_SET : GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, (vib_scaled >= 70)  ? GPIO_PIN_SET : GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, (vib_scaled >= 105) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+			// NORMAL  : 0.0 - 2.8 mm/s
+			// WARNING : 2.8 - 7.1 mm/s
+			// DANGER  : ????? 7.1 mm/s
+			const char* status;
+			if (adc < 819)
+					status = "NORMAL  ";
+			else if (adc < 2074)
+					status = "WARNING!";
+			else
+					status = "DANGER!!";
 
-// ????? UART
-sprintf(msg, "Vib:%u.%u mm/s %s\r\n",
-    (unsigned int)vib_int,
-    (unsigned int)vib_dec,
-    status);
-HAL_UART_Transmit(&huart1, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
+			//  UART
+			sprintf(msg, "Vib:%u.%u mm/s %s\r\n",
+					(unsigned int)vib_int,
+					(unsigned int)vib_dec,
+					status);
+			HAL_UART_Transmit(&huart1, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
 
-// ????? LED
-if (adc < 819)
-{
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
-    HAL_Delay(500);
-}
-else if (adc < 2074)
-{
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
-    HAL_Delay(500);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
-    HAL_Delay(500);
-}
-else
-{
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
-    HAL_Delay(100);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
-    HAL_Delay(100);
-}
+			//  LED
+			if (adc < 819)
+			{
+				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
+				HAL_Delay(500);
+			}
+			else if (adc < 2074)
+			{
+				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
+				HAL_Delay(500);
+				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
+				HAL_Delay(500);
+			}
+			else
+			{
+					HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
+					HAL_Delay(100);
+					HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
+					HAL_Delay(100);
+			}
 
-// ????? LCD - ?????? 16 ???????
-char lcdLine1[17];
-char lcdLine2[17];
+			char lcdLine1[17];
+			char lcdLine2[17];
 
-sprintf(lcdLine1, "Vib:%2u.%u mm/s  ",
-    (unsigned int)vib_int,
-    (unsigned int)vib_dec);
-lcdLine1[16] = '\0';
+			sprintf(lcdLine1, "Vib:%2u.%u mm/s  ",
+					(unsigned int)vib_int,
+					(unsigned int)vib_dec);
+			lcdLine1[16] = '\0';
 
-sprintf(lcdLine2, "Status: %s", status);
-lcdLine2[16] = '\0';
+			sprintf(lcdLine2, "Status: %s", status);
+			lcdLine2[16] = '\0';
 
-LCD_SetCursor(0, 0);
-LCD_Print(lcdLine1);
-LCD_SetCursor(1, 0);
-LCD_Print(lcdLine2);
+			LCD_SetCursor(0, 0);
+			LCD_Print(lcdLine1);
+			LCD_SetCursor(1, 0);
+			LCD_Print(lcdLine2);
+			}
   /* USER CODE END 3 */
 }
-}
+
 /**
   * @brief System Clock Configuration
   * @retval None
@@ -328,13 +333,19 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_3|GPIO_PIN_4
-                          |GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7|GPIO_PIN_8, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_10
+                          |GPIO_PIN_11|GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_3
+                          |GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7
+                          |GPIO_PIN_8, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : PB0 PB1 PB3 PB4
-                           PB5 PB6 PB7 PB8 */
-  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_3|GPIO_PIN_4
-                          |GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7|GPIO_PIN_8;
+  /*Configure GPIO pins : PB0 PB1 PB2 PB10
+                           PB11 PB12 PB13 PB3
+                           PB4 PB5 PB6 PB7
+                           PB8 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_10
+                          |GPIO_PIN_11|GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_3
+                          |GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7
+                          |GPIO_PIN_8;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
