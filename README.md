@@ -19,18 +19,18 @@ SMART Factory is a comprehensive university capstone project that tries to demon
 
 ```
 SMART_FACTORY/
-├── subsystems/              # Core operational modules
-│   ├── machine-monitoring/  # Equipment sensors & health tracking
-│   ├── fire-system/         # Safety & emergency response
-│   ├── quality-control/     # Automated inspection systems
-│   └── workforce-management/ # Personnel & shift management
-├── dashboard/               # User-facing interfaces
-│   ├── admin-panel/        # System configuration & oversight
-│   ├── monitoring/         # Real-time analytics
-│   └── reports/            # Historical analysis
-├── mobile-app/             # Field operations interface
-├── datebase/         # Backend & deployment
-├── shared/                 # Reusable firmware & utilities
+├── subsystems/              
+│   ├── machine-monitoring/  
+│   ├── fire-system/         
+│   ├── quality-control/     
+│   └── workforce-management/ 
+├── dashboard/             
+│   ├── admin-panel/        
+│   ├── monitoring/      
+│   └── reports/          
+├── mobile-app/         
+├── datebase/         
+├── shared/                 
 └── docs/                   # Architecture, requirements, UML
 ```
 

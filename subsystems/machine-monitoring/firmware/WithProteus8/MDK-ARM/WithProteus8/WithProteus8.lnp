@@ -1,0 +1,25 @@
+--cpu Cortex-M3
+"withproteus8\startup_stm32f103x6.o"
+"withproteus8\lcd.o"
+"withproteus8\main.o"
+"withproteus8\stm32f1xx_it.o"
+"withproteus8\stm32f1xx_hal_msp.o"
+"withproteus8\stm32f1xx_hal_gpio_ex.o"
+"withproteus8\stm32f1xx_hal_adc.o"
+"withproteus8\stm32f1xx_hal_adc_ex.o"
+"withproteus8\stm32f1xx_hal.o"
+"withproteus8\stm32f1xx_hal_rcc.o"
+"withproteus8\stm32f1xx_hal_rcc_ex.o"
+"withproteus8\stm32f1xx_hal_gpio.o"
+"withproteus8\stm32f1xx_hal_dma.o"
+"withproteus8\stm32f1xx_hal_cortex.o"
+"withproteus8\stm32f1xx_hal_pwr.o"
+"withproteus8\stm32f1xx_hal_flash.o"
+"withproteus8\stm32f1xx_hal_flash_ex.o"
+"withproteus8\stm32f1xx_hal_exti.o"
+"withproteus8\stm32f1xx_hal_uart.o"
+"withproteus8\system_stm32f1xx.o"
+--strict --scatter "WithProteus8\WithProteus8.sct"
+--summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "WithProteus8.map" -o WithProteus8\WithProteus8.axf

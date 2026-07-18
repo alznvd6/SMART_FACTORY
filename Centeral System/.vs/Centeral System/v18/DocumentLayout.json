@@ -1,0 +1,45 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "E:\\Lecture\\Embeded system\\Project\\SMART_FACTORY\\Centeral System\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{EB8E5098-69A4-4F70-BB86-E3FF8C0E493A}|Centeral System\\Centeral System.vcxproj|E:\\Lecture\\Embeded system\\Project\\SMART_FACTORY\\Centeral System\\Centeral System\\Centeral System.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{EB8E5098-69A4-4F70-BB86-E3FF8C0E493A}|Centeral System\\Centeral System.vcxproj|solutionrelative:Centeral System\\Centeral System.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c64b9c2-e352-428e-a56d-0ace190b99a6}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Centeral System.cpp",
+              "DocumentMoniker": "E:\\Lecture\\Embeded system\\Project\\SMART_FACTORY\\Centeral System\\Centeral System\\Centeral System.cpp",
+              "RelativeDocumentMoniker": "Centeral System\\Centeral System.cpp",
+              "ToolTip": "E:\\Lecture\\Embeded system\\Project\\SMART_FACTORY\\Centeral System\\Centeral System\\Centeral System.cpp",
+              "RelativeToolTip": "Centeral System\\Centeral System.cpp",
+              "ViewState": "AgIAAGsBAAAAAAAAAAAcwG4BAAAbAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-07-15T09:13:36.057Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

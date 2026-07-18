@@ -1,0 +1,33 @@
+=== SMART FACTORY: LIVE WORKER STATUS ===
+Last Updated: 2026-07-17 14:24:10
+
+🔴 ID: 1001 | Name: Ali Rezaei | Phone: 09120001001
+   Status: OUT (Last Out: N/A | Logged by: N/A)
+--------------------------------------------------
+🔴 ID: 1002 | Name: Mohammad Karimi | Phone: 09120001002
+   Status: OUT (Last Out: N/A | Logged by: N/A)
+--------------------------------------------------
+🔴 ID: 1003 | Name: Sara Ahmadi | Phone: 09120001003
+   Status: OUT (Last Out: N/A | Logged by: N/A)
+--------------------------------------------------
+🔴 ID: 1004 | Name: Reza Hosseini | Phone: 09120001004
+   Status: OUT (Last Out: N/A | Logged by: N/A)
+--------------------------------------------------
+🔴 ID: 1005 | Name: Mina Moradi | Phone: 09120001005
+   Status: OUT (Last Out: N/A | Logged by: N/A)
+--------------------------------------------------
+🔴 ID: 1006 | Name: Hamid Nouri | Phone: 09120001006
+   Status: OUT (Last Out: N/A | Logged by: N/A)
+--------------------------------------------------
+🔴 ID: 1007 | Name: Zahra Ghasemi | Phone: 09120001007
+   Status: OUT (Last Out: N/A | Logged by: N/A)
+--------------------------------------------------
+🔴 ID: 1008 | Name: Omid Safari | Phone: 09120001008
+   Status: OUT (Last Out: N/A | Logged by: N/A)
+--------------------------------------------------
+🔴 ID: 1009 | Name: Neda Jafari | Phone: 09120001009
+   Status: OUT (Last Out: N/A | Logged by: N/A)
+--------------------------------------------------
+🔴 ID: 1010 | Name: Farid Malekani | Phone: 09120001010
+   Status: OUT (Last Out: N/A | Logged by: N/A)
+--------------------------------------------------
