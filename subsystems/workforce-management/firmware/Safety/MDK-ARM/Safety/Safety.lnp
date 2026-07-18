@@ -1,5 +1,6 @@
 --cpu Cortex-M3
 "safety\startup_stm32f103xb.o"
+"safety\lcd.o"
 "safety\main.o"
 "safety\stm32f1xx_it.o"
 "safety\stm32f1xx_hal_msp.o"
