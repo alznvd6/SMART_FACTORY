@@ -53,6 +53,8 @@ typedef struct
 #define PRODUCT_REJECT  0
 #define WEIGHT_MIN_ADC   100
 #define WEIGHT_MAX_ADC   3000
+#define LENGTH_MIN_CM    5
+#define LENGTH_MAX_CM    12
 #define COLOR_OK_STATE   GPIO_PIN_SET
 /* USER CODE END PD */
 
@@ -94,6 +96,9 @@ LCD_StateTypeDef lcd_state = LCD_STATE_OFF;
 ProductRecord history[HISTORY_SIZE];
 uint8_t history_index = 0;
 
+uint16_t length_value = 0;
+uint8_t ultra_rx_buf[8];
+
 char lcd_text[21];
 char uart_text[160];
 /* USER CODE END PV */
@@ -104,6 +109,8 @@ static void MX_GPIO_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
+
+void Update_Ultrasonic_Data(void);
 /* USER CODE BEGIN PFP */
 void LCD_Send4Bit(uint8_t data);
 void LCD_SendCommand(uint8_t cmd);
@@ -121,6 +128,7 @@ void Process_Product(void);
 void Update_LCD(void);
 void Update_Relay(void);
 void Send_UART_Report(void);
+uint16_t Read_Ultrasonic_DistanceCm(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -282,14 +290,20 @@ uint8_t Check_ProductStatus(void)
 {
   uint8_t weight_ok;
   uint8_t color_ok;
+	uint8_t length_ok = 0;
 
+	
+	Update_Ultrasonic_Data();
   HAL_ADC_Start(&hadc1);
 	HAL_Delay(2);
   HAL_ADC_PollForConversion(&hadc1, 20);
   adc_value = HAL_ADC_GetValue(&hadc1);
   HAL_ADC_Stop(&hadc1);
 
-  color_value = (uint8_t)HAL_GPIO_ReadPin(COLOR_GPIO_Port, COLOR_Pin);
+
+	color_value = (uint8_t)HAL_GPIO_ReadPin(COLOR_GPIO_Port, COLOR_Pin);
+
+  
 
   if((adc_value >= WEIGHT_MIN_ADC) && (adc_value <= WEIGHT_MAX_ADC))
     weight_ok = 1;
@@ -300,8 +314,13 @@ uint8_t Check_ProductStatus(void)
     color_ok = 1;
   else
     color_ok = 0;
+	
+	if((length_value >= LENGTH_MIN_CM) && (length_value <= LENGTH_MAX_CM))
+		length_ok = 1;
+	else
+		length_ok = 0;
 
-  if((weight_ok == 1) && (color_ok == 1))
+  if((weight_ok == 1))
     return PRODUCT_PASS;
   else
     return PRODUCT_REJECT;
@@ -374,9 +393,10 @@ void Process_Product(void)
   }
 
   Save_History(status);
-  sprintf(uart_text, "ADC=%u COLOR=%u STATUS=%s\r\n",
+  sprintf(uart_text, "ADC=%u COLOR=%u LENGTH=%u STATUS=%s\r\n",
         adc_value,
         color_value,
+				length_value,
         (status == PRODUCT_PASS) ? "PASS" : "REJECT");
   HAL_UART_Transmit(&huart2, (uint8_t*)uart_text, strlen(uart_text), 200);
 
@@ -515,6 +535,19 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
       motion_flag = 1;
   }
 }
+void Update_Ultrasonic_Data(void)
+{
+  uint8_t cmd = 0x55;
+  
+  HAL_UART_Transmit(&huart1, &cmd, 1, 50);
+  
+  if(HAL_UART_Receive(&huart1, ultra_rx_buf, 2, 100) == HAL_OK)
+  {
+    length_value = (ultra_rx_buf[0] << 8) | ultra_rx_buf[1];
+  }
+}
+
+
 /* USER CODE END 0 */
 
 /**
@@ -562,7 +595,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	  
+
 		if(system_on == 0)
 		{
 			lcd_state = LCD_STATE_OFF;
