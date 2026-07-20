@@ -48,8 +48,6 @@ UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-bool lcd_needs_update = false; 
-
 char current_error_id[20] = {0};
 char current_error_action[30] = {0};
 
@@ -66,11 +64,12 @@ uint8_t rx_data1, rx_data2;
 char buff1[64], buff2[128];
 int idx1 = 0, idx2 = 0;
 
-bool is_error_active = false;
-bool is_error_solved_screen = false;
+volatile bool lcd_needs_update = false;
+volatile bool is_error_active = false;
+volatile bool is_error_solved_screen = false;
 uint32_t error_solved_timer = 0;
 
-bool is_worker_screen_active = false;
+volatile bool is_worker_screen_active = false;
 int worker_screen_line = 0; 
 uint32_t worker_screen_timer = 0;
 char worker_id_to_show[20] = {0};
@@ -166,12 +165,11 @@ int main(void)
       }
 
     /* USER CODE END WHILE */
-  }
 
     /* USER CODE BEGIN 3 */
 }
   /* USER CODE END 3 */
-
+}
 
 /**
   * @brief System Clock Configuration
@@ -318,6 +316,17 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
+    if (huart->Instance == USART1) {
+        __HAL_UART_CLEAR_OREFLAG(huart);
+        HAL_UART_Receive_IT(&huart1, &rx_data1, 1);
+    }
+    else if (huart->Instance == USART2) {
+        __HAL_UART_CLEAR_OREFLAG(huart);
+        HAL_UART_Receive_IT(&huart2, &rx_data2, 1);
+    }
+}
+
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
     if (huart->Instance == USART1) {
         if (rx_data1 == '\n' || rx_data1 == '\r') {
@@ -354,7 +363,6 @@ void Process_Terminal_Command(char* cmd) {
     char id[20] = {0};
     char action[30] = {0};
 
-    // ???? ???? ?? ???? (:) ?? ???? ?????
     char* colon_ptr = strchr(cmd, ':');
     if (colon_ptr) {
         int id_len = colon_ptr - cmd;
@@ -363,12 +371,10 @@ void Process_Terminal_Command(char* cmd) {
             id[id_len] = '\0';
         }
         
-        // ??????? Action (??? ????????? ??????? ??? ?? ?? ????)
         char* action_ptr = colon_ptr + 1;
         while(*action_ptr == ' ') action_ptr++; 
         strncpy(action, action_ptr, sizeof(action)-1);
 
-        // ??? ?????????? ????? ?? ?????? ????
         action[strcspn(action, "\r\n")] = '\0';
 
         if (strcmp(action, "CLOTH") == 0 || strcmp(action, "DISTANCE") == 0) {
@@ -419,35 +425,35 @@ void Process_Terminal_Command(char* cmd) {
 }
 
 void Process_Central_Command(char* cmd) {
-    if (strncmp(cmd, "[CENTRAL_TASK]", 14) == 0) {
+    char* header_ptr = strstr(cmd, "[CENTRAL_TASK]");
+    
+    if (header_ptr != NULL) {
         char t_name[50] = {0};
         char t_target[20] = {0};
         int t_phase = 1;
 
-        // ???? ???? ???? ???? ???? ???? ?? sscanf
-        char* task_ptr = strstr(cmd, "Task:");
-        char* target_ptr = strstr(cmd, "|Target:");
-        char* phase_ptr = strstr(cmd, "|Phase:");
+        char* task_ptr = strstr(header_ptr, "Task:");
+        char* target_ptr = strstr(header_ptr, "|Target:");
+        char* phase_ptr = strstr(header_ptr, "|Phase:");
 
         if (task_ptr && target_ptr && phase_ptr) {
-            task_ptr += 5; // ?? ??? ?? ???? "Task:"
+            task_ptr += 5; 
             int name_len = target_ptr - task_ptr;
             if (name_len < 50) {
                 strncpy(t_name, task_ptr, name_len);
                 t_name[name_len] = '\0';
             }
 
-            target_ptr += 8; // ?? ??? ?? ???? "|Target:"
+            target_ptr += 8; 
             int target_len = phase_ptr - target_ptr;
             if (target_len < 20) {
                 strncpy(t_target, target_ptr, target_len);
                 t_target[target_len] = '\0';
             }
 
-            phase_ptr += 7; // ?? ??? ?? ???? "|Phase:"
+            phase_ptr += 7; 
             t_phase = atoi(phase_ptr);
 
-            // ????? ? ?????? ??? ?? ?? ???????
             bool found = false;
             for (int i = 0; i < 2; i++) {
                 if (lcd_queue[i].is_valid && strcmp(lcd_queue[i].name, t_name) == 0) {
@@ -468,18 +474,18 @@ void Process_Central_Command(char* cmd) {
                     }
                 }
             }
-            lcd_needs_update = true; // ??? ?? ???? ???% ???? ????
+            lcd_needs_update = true; 
         }
     }
-    else if (strncmp(cmd, "[CENTRAL_OK]", 12) == 0) {
+    else if (strstr(cmd, "[CENTRAL_OK]") != NULL) {
         is_worker_screen_active = true;
         worker_screen_timer = HAL_GetTick();
         lcd_needs_update = true;
     }
-    else if (strncmp(cmd, "[CENTRAL_REJECT]", 16) == 0) {
+    else if (strstr(cmd, "[CENTRAL_REJECT]") != NULL) {
         HAL_UART_Transmit(&huart1, (uint8_t*)"[SYSTEM]: Access Denied! Not your group phase.\r\n", 48, 100);
     }
-    else if (strncmp(cmd, "[CENTRAL] TIMEOUT_ASSIGNED", 26) == 0) {
+    else if (strstr(cmd, "[CENTRAL] TIMEOUT_ASSIGNED") != NULL) {
         char t_name[50] = {0};
         char* assign_ptr = strstr(cmd, "ASSIGNED:");
         if (assign_ptr) {
@@ -515,19 +521,16 @@ void Shift_Queue_Up(int line_to_clear) {
 }
 
 void Refresh_LCD(void) {
-    // ?. ????? ????? ???? ????
     if (is_error_active) {
         char line1[32];
         char line2[32];
         
         LCD_Clear();
         
-        // ??? ?? ???: Error: ID
         snprintf(line1, sizeof(line1), "Error: %s", current_error_id);
         LCD_Goto(1, 1);
         LCD_Print(line1);
         
-        // ??? ?? ???: [Error name]
         snprintf(line2, sizeof(line2), "[%s]", current_error_action);
         LCD_Goto(2, 1);
         LCD_Print(line2);
@@ -535,7 +538,6 @@ void Refresh_LCD(void) {
         return;
     }
 
-    // ?. ????? ????? ???? "??? ?? ??"
     if (is_error_solved_screen) {
         LCD_Clear();
         LCD_Goto(1, 1);
@@ -543,12 +545,10 @@ void Refresh_LCD(void) {
         return;
     }
 
-    // ?. ???? ???? (????? ?????? ?? ???????)
     LCD_Clear();
-    bool has_task = false; // ?????? ???? ????? ???? ??? ????
+    bool has_task = false; 
 
     for (int i = 0; i < 2; i++) {
-        // ??? ?????? ??? ?? i ??? ??? ????
         if (is_worker_screen_active && worker_screen_line == i) {
             char display_str[32];
             snprintf(display_str, sizeof(display_str), "Worker ID: %s", worker_id_to_show);
@@ -556,24 +556,32 @@ void Refresh_LCD(void) {
             LCD_Print(display_str);
             has_task = true;
         }
-        // ??? ???? ?? ?? ?? i ???? ????? ????
         else if (lcd_queue[i].is_valid) {
-            char display_str[32];
+            char display_str[40];
             int grp_num = lcd_queue[i].target[7] - '0'; 
-            
-            if (lcd_queue[i].phase == 1) {
-                snprintf(display_str, sizeof(display_str), "%s - %d", lcd_queue[i].name, grp_num);
+            char phases_text[15] = {0};
+
+            if (grp_num == 2) {
+                if (lcd_queue[i].phase == 1) strcpy(phases_text, "2");
+                else if (lcd_queue[i].phase == 2) strcpy(phases_text, "2,3");
+                else if (lcd_queue[i].phase == 3) strcpy(phases_text, "2,3,4");
+            } 
+            else if (grp_num == 3) {
+                if (lcd_queue[i].phase == 1) strcpy(phases_text, "3");
+                else if (lcd_queue[i].phase == 2) strcpy(phases_text, "3,4");
+                else if (lcd_queue[i].phase == 3) strcpy(phases_text, "3,4,2");
+            } 
+            else if (grp_num == 4) {
+                if (lcd_queue[i].phase == 1) strcpy(phases_text, "4");
+                else if (lcd_queue[i].phase == 2) strcpy(phases_text, "4,3");
+                else if (lcd_queue[i].phase == 3) strcpy(phases_text, "4,3,2");
             }
-            else if (lcd_queue[i].phase == 2) {
-                int second_grp = (grp_num == 3) ? 4 : (grp_num == 2 ? 3 : 3);
-                snprintf(display_str, sizeof(display_str), "%s - %d,%d", lcd_queue[i].name, grp_num, second_grp);
+
+            if (lcd_queue[i].phase == 4) {
+                strcpy(phases_text, "X");
             }
-            else if (lcd_queue[i].phase == 3) {
-                snprintf(display_str, sizeof(display_str), "%s - 3,4,2", lcd_queue[i].name);
-            }
-            else if (lcd_queue[i].phase == 4) {
-                snprintf(display_str, sizeof(display_str), "%s - X", lcd_queue[i].name); 
-            }
+
+            snprintf(display_str, sizeof(display_str), "%s - %s", lcd_queue[i].name, phases_text);
             
             LCD_Goto(i + 1, 1);
             LCD_Print(display_str);
@@ -581,7 +589,6 @@ void Refresh_LCD(void) {
         }
     }
 
-    // ?. ???? ??????? (??? ??? ? ???? ???? ?????)
     if (!has_task) {
         LCD_Goto(1, 1);
         LCD_Print("Waiting Tasks...");
