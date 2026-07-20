@@ -1,5 +1,5 @@
 === SMART FACTORY: LIVE WORKER STATUS ===
-Last Updated: 2026-07-17 14:24:10
+Last Updated: 2026-07-19 19:51:00
 
 🔴 ID: 1001 | Name: Ali Rezaei | Phone: 09120001001
    Status: OUT (Last Out: N/A | Logged by: N/A)
