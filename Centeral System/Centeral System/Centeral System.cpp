@@ -4,14 +4,11 @@
 #include <string.h>
 #include <stdbool.h>
 #include <time.h>
-#include <conio.h> // جهت استفاده از _kbhit() و _getch() بدون خطا در Visual Studio
+#include <conio.h> 
 
 #define PORT_NAME "COM1"
 #define DB_PATH_BASE "..\\..\\..\\..\\infrastructure\\database\\worker_info"
 
-// ============================================================================
-// ۱. توابع مدیریت فایل و منطق اولویت‌ها (بدون تغییر از کد اصلی شما)
-// ============================================================================
 bool Get_Worker_Name_Fast(const char* worker_id, char* out_name, size_t out_len) {
     char registry_path[260];
     snprintf(registry_path, sizeof(registry_path), "%s\\worker_ID.txt", DB_PATH_BASE);
@@ -133,6 +130,11 @@ HANDLE init_serial(const char* port_name) {
     dcbSerialParams.StopBits = ONESTOPBIT;
     dcbSerialParams.Parity = NOPARITY;
 
+    dcbSerialParams.fOutxCtsFlow = FALSE;
+    dcbSerialParams.fOutxDsrFlow = FALSE;
+    dcbSerialParams.fDtrControl = DTR_CONTROL_DISABLE;
+    dcbSerialParams.fRtsControl = RTS_CONTROL_DISABLE;
+
     COMMTIMEOUTS timeouts = { 0 };
     timeouts.ReadIntervalTimeout = 10;
     timeouts.ReadTotalTimeoutConstant = 10;
@@ -154,9 +156,6 @@ void Show_Main_Menu() {
     printf(" Choose an option or wait for incoming serial data: ");
 }
 
-// ============================================================================
-// ۲. بدنه اصلی برنامه همراه با اعمال تغییرات و منطق‌های جدید پروژه
-// ============================================================================
 int main() {
     HANDLE hComm = init_serial(PORT_NAME);
     if (hComm == INVALID_HANDLE_VALUE) {
@@ -173,16 +172,14 @@ int main() {
     char current_task_name[50] = { 0 };
     char current_task_target[20] = { 0 };
 
-    // متغیرهای مدیریت پویای زمان
-    unsigned long long task_accumulated_time = 0; // زمان کل سپری‌شده خالص (بدون احتساب خطای فریز)
-    unsigned long long last_tick = 0;              // آخرین تیک زمانی خوانده شده
-    bool is_frozen = false;                        // پرچم فریز شدن زمان به علت خطای محیطی
-    int last_sent_phase = 0;                       // جلوگیری از ارسال مکرر یک فاز تکراری به میکرو
+    unsigned long long task_accumulated_time = 0;
+    unsigned long long last_tick = 0;              
+    bool is_frozen = false;                        
+    int last_sent_phase = 0;                       
 
     Show_Main_Menu();
 
     while (1) {
-        // الف) بررسی کلیدهای فشرده‌شده کیبورد
         if (_kbhit()) {
             char choice = _getch();
             if (choice == '1') {
@@ -201,7 +198,7 @@ int main() {
                     int target_group = 0;
                     printf("Select Target Age Group (2, 3 or 4): ");
                     scanf_s("%d", &target_group);
-                    while (getchar() != '\n'); // خالی کردن بافر
+                    while (getchar() != '\n'); 
 
                     if (target_group == 2 || target_group == 3 || target_group == 4) {
                         is_task_active = true;
@@ -213,7 +210,6 @@ int main() {
 
                         printf("\n[SUCCESS] Extra Task '%s' active for Group %d! Timer started.\n", current_task_name, target_group);
 
-                        // تزریق اولیه تسک به میکرو (فاز ۱)
                         snprintf(tx_buffer, sizeof(tx_buffer), "[CENTRAL_TASK] Task:%s|Target:%s|Phase:1\r\n", current_task_name, current_task_target);
                         WriteFile(hComm, tx_buffer, (DWORD)strlen(tx_buffer), &bytes_written, NULL);
                     }
@@ -233,17 +229,15 @@ int main() {
             }
         }
 
-        // ب) منطق پویای محاسبه زمان سپری‌شده و فازبندی‌های ارسال به میکرو
         if (is_task_active) {
             unsigned long long current_tick = GetTickCount64();
 
             if (!is_frozen) {
-                // اضافه کردن تفاضل زمان جدید به زمان خالص کل تسک
                 task_accumulated_time += (current_tick - last_tick);
             }
-            last_tick = current_tick; // به‌روزرسانی تیک قبلی
+            last_tick = current_tick; 
 
-            unsigned long long elapsed_min = task_accumulated_time / 60000; // تبدیل به دقیقه
+            unsigned long long elapsed_min = task_accumulated_time / 60000; 
             int current_phase = 1;
 
             if (elapsed_min < 1) current_phase = 1;
@@ -251,7 +245,6 @@ int main() {
             else if (elapsed_min >= 2 && elapsed_min < 3) current_phase = 3;
             else current_phase = 4;
 
-            // در صورت تغییر فاز زمانی، پکت جدید به میکرو ارسال می‌شود
             if (current_phase != last_sent_phase) {
                 last_sent_phase = current_phase;
                 snprintf(tx_buffer, sizeof(tx_buffer), "[CENTRAL_TASK] Task:%s|Target:%s|Phase:%d\r\n", current_task_name, current_task_target, current_phase);
@@ -259,7 +252,6 @@ int main() {
                 printf("\n[PHASE CHANGE -> MCU]: %s", tx_buffer);
             }
 
-            // بازه چهارم: مدیریت اتمام وقت (۳ دقیقه) و واگذاری تصادفی سیستم
             if (elapsed_min >= 3) {
                 printf("\n\n[TIMEOUT] Task '%s' expired! Randomly assigning...\n", current_task_name);
 
@@ -280,7 +272,6 @@ int main() {
             }
         }
 
-        // ج) بررسی و خواندن داده‌های ورودی از پورت سریال فیزیکی
         if (ReadFile(hComm, rx_buffer, sizeof(rx_buffer) - 1, &bytes_read, NULL) && bytes_read > 0) {
             rx_buffer[bytes_read] = '\0';
             while (bytes_read > 0 && (rx_buffer[bytes_read - 1] == '\r' || rx_buffer[bytes_read - 1] == '\n')) {
@@ -289,36 +280,31 @@ int main() {
 
             printf("\n\n[SERIAL INCOMING]: \"%s\"\n", rx_buffer);
 
-            // ۱. بررسی پکت‌های کنترل وضعیت تایمر (FREEZE / RESUME) از سمت میکرو
             if (strcmp(rx_buffer, "CMD_TIMER:FREEZE") == 0) {
                 is_frozen = true;
-                last_tick = GetTickCount64(); // تنظیم مجدد لنگر تیک برای جلوگیری از پرش زمانی
+                last_tick = GetTickCount64(); 
                 printf("[SYSTEM STAT] Alarm Active. Central Timer is FROZEN.\n");
             }
             else if (strcmp(rx_buffer, "CMD_TIMER:RESUME") == 0) {
                 is_frozen = false;
-                last_tick = GetTickCount64(); // راه اندازی تیک از ثانیه فعلی ویندوز
+                last_tick = GetTickCount64(); 
                 printf("[SYSTEM STAT] Alarm Cleared. Central Timer RESUMED.\n");
 
-                // ارسال مجدد فاز جاری جهت همگام‌سازی نمایشگر میکرو (Resync)
                 if (is_task_active) {
                     snprintf(tx_buffer, sizeof(tx_buffer), "[CENTRAL_TASK] Task:%s|Target:%s|Phase:%d\r\n", current_task_name, current_task_target, last_sent_phase);
                     WriteFile(hComm, tx_buffer, (DWORD)strlen(tx_buffer), &bytes_written, NULL);
                 }
             }
             else {
-                // ۲. پارس کردن پکت انتخاب کارگر (پشتیبانی از هر دو منطق رشته‌ای قدیمی و سطر انتخابی جدید)
                 char parsed_id[20] = { 0 };
                 char parsed_action[50] = { 0 };
 
                 if (sscanf_s(rx_buffer, "%19[^:]: %49s", parsed_id, (unsigned int)sizeof(parsed_id), parsed_action, (unsigned int)sizeof(parsed_action)) == 2 ||
                     sscanf_s(rx_buffer, "%19[^:]:%49s", parsed_id, (unsigned int)sizeof(parsed_id), parsed_action, (unsigned int)sizeof(parsed_action)) == 2) {
 
-                    // بررسی پکت بر اساس نام تسک ارسالی جدید از میکرو
                     if (is_task_active && strcmp(parsed_action, current_task_name) == 0) {
                         unsigned long long elapsed_min = task_accumulated_time / 60000;
 
-                        // در فاز ۴ هیچ کارگری دستی حق انتخاب ندارد
                         if (elapsed_min >= 3) {
                             snprintf(tx_buffer, sizeof(tx_buffer), "[CENTRAL_REJECT] Selection blocked in Phase 4!\r\n");
                             WriteFile(hComm, tx_buffer, (DWORD)strlen(tx_buffer), &bytes_written, NULL);
@@ -338,17 +324,15 @@ int main() {
                                 WriteFile(hComm, tx_buffer, (DWORD)strlen(tx_buffer), &bytes_written, NULL);
                                 printf("[CENTRAL RESPONDED]: %s", tx_buffer);
 
-                                is_task_active = false; // اتمام تسک با موفقیت
+                                is_task_active = false; 
                             }
                             else {
-                                // کارگر عضو گروه مجاز در این بازه نبود -> ریجکت درخواست، تسک روی نمایشگر میکرو باقی می‌ماند
                                 snprintf(tx_buffer, sizeof(tx_buffer), "[CENTRAL_REJECT] Not your group priority yet!\r\n");
                                 WriteFile(hComm, tx_buffer, (DWORD)strlen(tx_buffer), &bytes_written, NULL);
                                 printf("[RESPONDED]: %s", tx_buffer);
                             }
                         }
                     }
-                    // پشتیبانی پورت از منطق کدهای قدیمی شما جهت اطمینان از صحت بک‌آپ
                     else if (strcmp(parsed_action, "BONUS") == 0) {
                         if (!is_task_active) {
                             snprintf(tx_buffer, sizeof(tx_buffer), "[CENTRAL_REJECT] No active task available!\r\n");
