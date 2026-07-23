@@ -168,74 +168,151 @@ class SmartFactoryDashboard(ctk.CTk):
         self.badge_lock.grid(row=4, column=1, padx=15, pady=15, sticky="ew")
 
     def create_quadrant_2_electrical(self):
-        """[SECTION 2/4] Electrical Grid Line Monitoring (Expansion Room)."""
+        """[SECTION 2/4] Machine Monitoring"""
+
         frame = ctk.CTkFrame(self, corner_radius=12, fg_color="#18181C")
         frame.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
 
         title = ctk.CTkLabel(
-            frame, text="⚡ SECTION 2: POWER GRID & CURRENT", 
-            font=ctk.CTkFont(size=16, weight="bold"), text_color="#FFD700"
+            frame,
+            text="⚙️ SECTION 2: MACHINE MONITORING",
+            font=ctk.CTkFont(size=16, weight="bold"),
+            text_color="#FFD700"
         )
         title.pack(anchor="w", padx=15, pady=15)
 
-        # Placeholder widgets
-        lbl_status = ctk.CTkLabel(frame, text="⚡ Voltage In: 231.2 V AC", font=ctk.CTkFont(size=15))
-        lbl_status.pack(anchor="w", padx=25, pady=5)
+        ctk.CTkLabel(
+            frame,
+            text="📈 Machine Vibration : 0.28 g",
+            font=ctk.CTkFont(size=15)
+        ).pack(anchor="w", padx=25, pady=5)
 
-        lbl_draw = ctk.CTkLabel(frame, text="🔌 Factory Current Load: 4.8 A", font=ctk.CTkFont(size=15))
-        lbl_draw.pack(anchor="w", padx=25, pady=5)
+        ctk.CTkLabel(
+            frame,
+            text="🌡 Motor Temperature : 41.6 °C",
+            font=ctk.CTkFont(size=15)
+        ).pack(anchor="w", padx=25, pady=5)
 
-        lbl_grid_status = ctk.CTkLabel(
-            frame, text="GRID HEALTH: EXCELLENT", font=ctk.CTkFont(size=12, weight="bold"),
-            fg_color="#1F3A1E", text_color="#4CAF50", corner_radius=6, padx=10, pady=5
-        )
-        lbl_grid_status.pack(anchor="w", padx=25, pady=15)
+        ctk.CTkLabel(
+            frame,
+            text="⚡ Motor Current : 5.2 A",
+            font=ctk.CTkFont(size=15)
+        ).pack(anchor="w", padx=25, pady=5)
+
+        ctk.CTkLabel(
+            frame,
+            text="🛠 Machine Runtime : 186 hrs",
+            font=ctk.CTkFont(size=15)
+        ).pack(anchor="w", padx=25, pady=5)
+
+        ctk.CTkLabel(
+            frame,
+            text="MACHINE STATUS : HEALTHY",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            fg_color="#1F3A1E",
+            text_color="#4CAF50",
+            corner_radius=6,
+            padx=10,
+            pady=5
+        ).pack(anchor="w", padx=25, pady=15)
 
     def create_quadrant_3_assembly(self):
-        """[SECTION 3/4] Factory Assembly Conveyor Line (Expansion Room)."""
+        """[SECTION 3/4] Workforce Statistics"""
+
         frame = ctk.CTkFrame(self, corner_radius=12, fg_color="#18181C")
         frame.grid(row=2, column=0, padx=10, pady=10, sticky="nsew")
 
         title = ctk.CTkLabel(
-            frame, text="📦 SECTION 3: ASSEMBLY & CONVEYOR LINE", 
-            font=ctk.CTkFont(size=16, weight="bold"), text_color="#00D2FF"
+            frame,
+            text="👷 SECTION 3: WORKFORCE STATISTICS",
+            font=ctk.CTkFont(size=16, weight="bold"),
+            text_color="#00D2FF"
         )
         title.pack(anchor="w", padx=15, pady=15)
 
-        lbl_belt = ctk.CTkLabel(frame, text="⚙️ Belt Speed: 0.85 m/s", font=ctk.CTkFont(size=15))
-        lbl_belt.pack(anchor="w", padx=25, pady=5)
+        ctk.CTkLabel(
+            frame,
+            text="👤 Present Workers : 18",
+            font=ctk.CTkFont(size=15)
+        ).pack(anchor="w", padx=25, pady=5)
 
-        lbl_count = ctk.CTkLabel(frame, text="🎯 Item Count (Shift): 14,832 units", font=ctk.CTkFont(size=15))
-        lbl_count.pack(anchor="w", padx=25, pady=5)
+        ctk.CTkLabel(
+            frame,
+            text="🦺 Safety Helmets Detected : 18",
+            font=ctk.CTkFont(size=15)
+        ).pack(anchor="w", padx=25, pady=5)
 
-        lbl_belt_status = ctk.CTkLabel(
-            frame, text="CONVEYOR: NOMINAL SPEED", font=ctk.CTkFont(size=12, weight="bold"),
-            fg_color="#1F3A1E", text_color="#4CAF50", corner_radius=6, padx=10, pady=5
-        )
-        lbl_belt_status.pack(anchor="w", padx=25, pady=15)
+        ctk.CTkLabel(
+            frame,
+            text="🚪 Absent Workers : 2",
+            font=ctk.CTkFont(size=15)
+        ).pack(anchor="w", padx=25, pady=5)
 
+        ctk.CTkLabel(
+            frame,
+            text="⏱ Shift Duration : 04:36:15",
+            font=ctk.CTkFont(size=15)
+        ).pack(anchor="w", padx=25, pady=5)
+
+        ctk.CTkLabel(
+            frame,
+            text="WORKFORCE STATUS : NORMAL",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            fg_color="#1F3A1E",
+            text_color="#4CAF50",
+            corner_radius=6,
+            padx=10,
+            pady=5
+        ).pack(anchor="w", padx=25, pady=15)
+        
     def create_quadrant_4_hvac(self):
-        """[SECTION 4/4] Facility HVAC System (Expansion Room)."""
+        """[SECTION 4/4] Production Line & Quality Control"""
+
         frame = ctk.CTkFrame(self, corner_radius=12, fg_color="#18181C")
         frame.grid(row=2, column=1, padx=10, pady=10, sticky="nsew")
 
         title = ctk.CTkLabel(
-            frame, text="❄️ SECTION 4: COLDROOM HVAC SYSTEM", 
-            font=ctk.CTkFont(size=16, weight="bold"), text_color="#A020F0"
+            frame,
+            text="🏭 SECTION 4: PRODUCTION LINE & QUALITY CONTROL",
+            font=ctk.CTkFont(size=16, weight="bold"),
+            text_color="#A020F0"
         )
         title.pack(anchor="w", padx=15, pady=15)
 
-        lbl_fan = ctk.CTkLabel(frame, text="🌀 Intake Fans: 80% RPM (ACTIVE)", font=ctk.CTkFont(size=15))
-        lbl_fan.pack(anchor="w", padx=25, pady=5)
+        ctk.CTkLabel(
+            frame,
+            text="📦 Total Products : 2,540",
+            font=ctk.CTkFont(size=15)
+        ).pack(anchor="w", padx=25, pady=5)
 
-        lbl_humidity = ctk.CTkLabel(frame, text="💧 Relative Humidity: 42.1 %", font=ctk.CTkFont(size=15))
-        lbl_humidity.pack(anchor="w", padx=25, pady=5)
+        ctk.CTkLabel(
+            frame,
+            text="✅ Healthy Products : 2,501",
+            font=ctk.CTkFont(size=15)
+        ).pack(anchor="w", padx=25, pady=5)
 
-        lbl_hvac_status = ctk.CTkLabel(
-            frame, text="HVAC STATE: AUTOMATIC REGULATION", font=ctk.CTkFont(size=12, weight="bold"),
-            fg_color="#1F3A1E", text_color="#4CAF50", corner_radius=6, padx=10, pady=5
-        )
-        lbl_hvac_status.pack(anchor="w", padx=25, pady=15)
+        ctk.CTkLabel(
+            frame,
+            text="❌ Defective Products : 39",
+            font=ctk.CTkFont(size=15)
+        ).pack(anchor="w", padx=25, pady=5)
+
+        ctk.CTkLabel(
+            frame,
+            text="🎯 Quality Rate : 98.46 %",
+            font=ctk.CTkFont(size=15)
+        ).pack(anchor="w", padx=25, pady=5)
+
+        ctk.CTkLabel(
+            frame,
+            text="QUALITY STATUS : EXCELLENT",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            fg_color="#1F3A1E",
+            text_color="#4CAF50",
+            corner_radius=6,
+            padx=10,
+            pady=5
+        ).pack(anchor="w", padx=25, pady=15)
 
     def update_gui_values(self):
         """Cyclical UI refresh callback (runs in main thread thread-safely)."""
